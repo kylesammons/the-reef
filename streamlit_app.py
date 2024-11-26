@@ -8,14 +8,14 @@ st.set_page_config(page_title="The Reef", page_icon="🎫")
 # App title
 st.title("🎫 The Reef")
 
-
-# Fetch data from BigQuery
-df = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
-
+# Load the original DataFrame
+csv_path = '/Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
+original_df = pd.read_csv(csv_path)
 
 # Initialize session state
 if "df" not in st.session_state:
-    st.session_state.df = df
+    # Copy the original DataFrame to session state
+    st.session_state.df = original_df.copy()
 
 # Section to add a new ticket
 st.header("Add an Account")
@@ -26,7 +26,7 @@ with st.form("add_ticket_form"):
     submitted = st.form_submit_button("Submit")
 
 if submitted:
-    # Generate new ticket
+    # Generate a new ticket
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     df_new = pd.DataFrame(
         [{
@@ -40,10 +40,10 @@ if submitted:
     st.write("Ticket submitted! Here are the ticket details:")
     st.dataframe(df_new, use_container_width=True, hide_index=True)
 
-    # Update session state
-    st.session_state.df = pd.concat([df_new, st.session_state.df], axis=0)
+    # Update session state DataFrame
+    st.session_state.df = pd.concat([df_new, st.session_state.df], axis=0, ignore_index=True)
 
-    # Show and edit existing tickets
+# Show and edit existing tickets
 st.header("The Reef")
 st.write(f"Number of tickets: `{len(st.session_state.df)}`")
 st.info(
@@ -52,24 +52,12 @@ st.info(
     icon="✍️"
 )
 
-# Display tickets with editable columns
+# Display the session DataFrame with editable columns
 edited_df = st.data_editor(
     st.session_state.df,
     use_container_width=True,
     hide_index=True,
-        column_config={
-        "Status": st.column_config.SelectboxColumn(
-            "Status",
-            help="Ticket status",
-            options=["Open", "In Progress", "Closed"],
-            required=True,
-        ),
-        "Priority": st.column_config.SelectboxColumn(
-            "Priority",
-            help="Priority",
-            options=["High", "Medium", "Low"],
-            required=True,
-        ),
-    },
-    disabled=["Date Submitted"],
 )
+
+# Optionally, update session state with edits
+st.session_state.df = edited_df
