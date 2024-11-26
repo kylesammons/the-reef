@@ -24,6 +24,9 @@ with st.form("add_ticket_form"):
     account_id = st.text_area("Account ID")
     client_id = st.text_area("Client ID")
     data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
+    Client_Name = st.text_area("Client Name")
+    Campaign_ID	= st.text_area("Campaign ID")
+    Campaign_Name = st.text_area("Campaign Name")
     submitted = st.form_submit_button("Submit")
 
 if submitted:
@@ -34,6 +37,9 @@ if submitted:
             "Client_ID": client_id,
             "Account_ID": account_id,
             "Data_Source_Name": data_source_name,
+            "Client_Name" = client_name
+            "Campaign_ID" = campaign_id
+            "Campaign_Name" = campaign_name
         }]
     )
     st.write("Ticket submitted! Here are the ticket details:")
