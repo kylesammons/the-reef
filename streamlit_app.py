@@ -4,10 +4,10 @@ import pandas as pd
 import streamlit as st
 
 # Set Streamlit page config
-st.set_page_config(page_title="The Reef", page_icon="🎫")
+st.set_page_config(page_title="The Reef", page_icon=":ocean:")
 
 # App title
-st.title("🎫 The Reef")
+st.title(":ocean: The Reef")
 
 # Fetch data from CSV
 csv_file = 'reefpaidmedia.csv'
