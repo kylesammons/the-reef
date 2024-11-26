@@ -22,31 +22,41 @@ if "df" not in st.session_state:
 # Section to add a new ticket
 st.header("Add an Account")
 with st.form("add_ticket_form"):
-    account_id = st.text_area("Account ID")
-    Client_Name = st.selectbox("Client Name", st.session_state.df["Client_Name"].unique())
+    # Client_ID selectbox, populated from existing DataFrame
     client_id = st.selectbox("Client ID", st.session_state.df["Client_ID"].unique())
+    account_id = st.text_area("Account ID")
     data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
-        # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
-            if client_name == "Window World" and data_source_name == "Facebook Ads":
-                campaign_id = st.text_area("Campaign ID")
-                campaign_name = st.text_area("Campaign Name")
-            else:
-                campaign_id = None
-                campaign_name = None
+    client_name = st.text_area("Client Name")
+    
+    # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
+    if client_name == "Window World" and data_source_name == "Facebook Ads":
+        campaign_id = st.text_area("Campaign ID")
+        campaign_name = st.text_area("Campaign Name")
+    else:
+        campaign_id = None
+        campaign_name = None
+
     submitted = st.form_submit_button("Submit")
 
 if submitted:
     # Generate new ticket
-    df_new = pd.DataFrame(
-        [{
-            "Client_ID": client_id,
-            "Account_ID": account_id,
-            "Data_Source_Name": data_source_name,
-            "Client_Name": Client_Name,
-            "Campaign_ID": Campaign_ID,
-            "Campaign_Name": Campaign_Name,
-        }]
-    )
+    new_data = {
+        "Client_ID": client_id,
+        "Account_ID": account_id,
+        "Data_Source_Name": data_source_name,
+        "Client_Name": client_name,
+    }
+
+    # Add campaign info if applicable
+    if campaign_id and campaign_name:
+        new_data["Campaign_ID"] = campaign_id
+        new_data["Campaign_Name"] = campaign_name
+    else:
+        new_data["Campaign_ID"] = ""
+        new_data["Campaign_Name"] = ""
+
+    df_new = pd.DataFrame([new_data])
+    
     st.write("Ticket submitted! Here are the ticket details:")
     st.dataframe(df_new, use_container_width=True, hide_index=True)
 
