@@ -23,10 +23,11 @@ st.header("Add an Account")
 with st.form("add_ticket_form"):
     # Select Client Name
     client_name = st.selectbox("Client Name", st.session_state.df["Client_Name"].unique())
-
-    # Dynamically update Client_ID based on the selected Client_Name
+    
+    # Dynamically get Client_ID based on selected Client_Name but hide it
     client_ids = st.session_state.df[st.session_state.df["Client_Name"] == client_name]["Client_ID"].unique()
-    client_id = st.selectbox("Client ID", client_ids, index=0 if len(client_ids) > 0 else None)
+    # Store the client_id in the session state, so it is retained but hidden from the form
+    st.session_state.client_id = client_ids[0] if len(client_ids) > 0 else None
 
     account_id = st.text_area("Account ID")
     data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
@@ -42,6 +43,9 @@ with st.form("add_ticket_form"):
     submitted = st.form_submit_button("Submit")
 
 if submitted:
+    # Use the dynamically populated client_id from session state
+    client_id = st.session_state.client_id
+    
     # Generate new ticket
     new_data = {
         "Client_ID": client_id,
@@ -84,6 +88,4 @@ edited_df = st.data_editor(
 )
 
 # Save changes back to CSV
-if not edited_df.equals(st.session_state.df):
-    st.session_state.df = edited_df
-    st.session_state.df.to_csv(csv_file, index=False)
+if not edited_df.equals(st.session_state.
