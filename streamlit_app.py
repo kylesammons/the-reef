@@ -34,7 +34,7 @@ with st.form("add_ticket_form"):
     data_source_name = st.selectbox("Data Source", st.session_state.df["Data_Source_Name"].unique())
     
     # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
-    if client_name == "Window World" and data_source_name == "Facebook Ads":
+    if "Window World" in client_name and data_source_name == "Facebook Ads":
         campaign_id = st.text_area("Campaign ID")
         campaign_name = st.text_area("Campaign Name")
     else:
