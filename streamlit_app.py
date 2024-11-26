@@ -10,11 +10,6 @@ st.title("🎫 The Reef")
 
 # Load data from CSV
 df_path = 'reefpaidmedia.csv'
-try:
-    df = pd.read_csv(df_path)
-except FileNotFoundError:
-    st.error(f"Could not find the file at `{df_path}`. Please check the path.")
-    st.stop()
 
 # Initialize session state
 if "df" not in st.session_state:
