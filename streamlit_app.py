@@ -22,11 +22,15 @@ if "df" not in st.session_state:
 # Section to add a new ticket
 st.header("Add an Account")
 with st.form("add_ticket_form"):
-    # Client_ID selectbox, populated from existing DataFrame
-    client_id = st.selectbox("Client ID", st.session_state.df["Client_ID"].unique())
+    # Select Client Name, and preselect Client ID based on the selected Client Name
+    client_name = st.selectbox("Client Name", st.session_state.df["Client_Name"].unique())
+    
+    # Filter to get Client_ID corresponding to selected Client_Name
+    client_ids = st.session_state.df[st.session_state.df["Client_Name"] == client_name]["Client_ID"].unique()
+    client_id = st.selectbox("Client ID", client_ids, index=0 if len(client_ids) > 0 else None)
+
     account_id = st.text_area("Account ID")
     data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
-    client_name = st.text_area("Client Name")
     
     # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
     if client_name == "Window World" and data_source_name == "Facebook Ads":
