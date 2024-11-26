@@ -29,7 +29,7 @@ with st.form("add_ticket_form"):
     # Store the client_id in the session state, so it is retained but hidden from the form
     st.session_state.client_id = client_ids[0] if len(client_ids) > 0 else None
 
-    account_id = st.text_area("Account ID")
+    account_id = st.text_area("Account ID", height=40)
     data_source_name = st.selectbox("Data Source", st.session_state.df["Data_Source_Name"].unique())
     
     # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
