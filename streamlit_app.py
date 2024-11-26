@@ -18,7 +18,7 @@ if "df" not in st.session_state:
     else:
         st.session_state.df = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
 
-# Section to add a new ticket
+# Section to add a new account
 st.header("Add an Account")
 with st.form("add_ticket_form"):
     # Select Client Name
@@ -30,7 +30,7 @@ with st.form("add_ticket_form"):
     st.session_state.client_id = client_ids[0] if len(client_ids) > 0 else None
 
     account_id = st.text_area("Account ID")
-    data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
+    data_source_name = st.selectbox("Data Source", st.session_state.df["Data_Source_name"].unique())
     
     # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
     if client_name == "Window World" and data_source_name == "Facebook Ads":
@@ -46,7 +46,7 @@ if submitted:
     # Use the dynamically populated client_id from session state
     client_id = st.session_state.client_id
     
-    # Generate new ticket
+    # Generate new account
     new_data = {
         "Client_ID": client_id,
         "Account_ID": account_id,
@@ -64,18 +64,18 @@ if submitted:
 
     df_new = pd.DataFrame([new_data])
     
-    st.write("Ticket submitted! Here are the ticket details:")
+    st.write("Account submitted! Your account should begin showing up in reports beginning 6:00 am EST tomorrow morning. Here are the submission details:")
     st.dataframe(df_new, use_container_width=True, hide_index=True)
 
     # Update session state and save to CSV
     st.session_state.df = pd.concat([st.session_state.df, df_new], axis=0, ignore_index=True)
     st.session_state.df.to_csv(csv_file, index=False)
 
-# Show and edit existing tickets
+# Show and edit existing accounts
 st.header("The Reef")
-st.write(f"Number of tickets: `{len(st.session_state.df)}`")
+st.write(f"Number of paid media accounts: `{len(st.session_state.df)}`")
 st.info(
-    "You can edit the tickets by double-clicking on a cell. Note how the plots below "
+    "You can edit the accounts by double-clicking on a cell. Note how the plots below "
     "update automatically! You can also sort the table by clicking on the column headers.",
     icon="✍️"
 )
