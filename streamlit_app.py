@@ -81,9 +81,10 @@ st.info(
     icon="✍️"
 )
 
-# Editable table
+# Select only the desired columns
+columns_to_display = ["Account_Name", "Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
 edited_df = st.data_editor(
-    st.session_state.df,
+    st.session_state.df[columns_to_display],  # Subset the dataframe to only include the specified columns
     use_container_width=True,
     hide_index=True,
 )
