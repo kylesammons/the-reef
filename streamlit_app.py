@@ -32,8 +32,7 @@ if submitted:
         [{
             "Client ID": client_id,
             "Account ID": account_id,
-            "Status": "Open",
-            "Priority": "Medium",
+            "Status": "Active",
             "Data Source": data_source_name,
             "Date Submitted": today,
         }]
