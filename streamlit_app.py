@@ -1,8 +1,6 @@
 import datetime
 import pandas as pd
 import streamlit as st
-from google.cloud import bigquery
-from google.oauth2 import service_account
 
 # Set Streamlit page config
 st.set_page_config(page_title="The Reef", page_icon="🎫")
@@ -10,18 +8,9 @@ st.set_page_config(page_title="The Reef", page_icon="🎫")
 # App title
 st.title("🎫 The Reef")
 
-# Create the BigQuery client
-credentials = service_account.Credentials.from_service_account_file(
-    '/Users/Trimark/Desktop/Jupyter_Notebooks/trimark-tdp-87c89fbd0816.json'
-)
-client = bigquery.Client(credentials=credentials, project='trimark-tdp')
 
 # Fetch data from BigQuery
-query = """
-  SELECT *
-  FROM `trimark-tdp.reef.paid_media`
-LIMIT 100"""
-df = client.query(query).to_dataframe()
+df = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
 
 
 # Initialize session state
