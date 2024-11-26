@@ -10,7 +10,8 @@ st.title("🎫 The Reef")
 
 
 # Fetch data from BigQuery
-df = 'reefpaidmedia.csv'
+data = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
+df = pd.DataFrame(data)
 
 
 # Initialize session state
@@ -33,7 +34,6 @@ if submitted:
             "Client ID": client_id,
             "Account ID": account_id,
             "Status": "Active",
-            "Priority": "Medium",
             "Data Source": data_source_name,
             "Date Submitted": today,
         }]
@@ -53,6 +53,26 @@ st.info(
     icon="✍️"
 )
 
-
-# Display the DataFrame with editable columns
-st.header("Edit Tickets")
+# Show the tickets dataframe with `st.data_editor`. This lets the user edit the table
+# cells. The edited data is returned as a new dataframe.
+edited_df = st.data_editor(
+    st.session_state.df,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "Status": st.column_config.SelectboxColumn(
+            "Status",
+            help="Ticket status",
+            options=["Open", "In Progress", "Closed"],
+            required=True,
+        ),
+        "Priority": st.column_config.SelectboxColumn(
+            "Priority",
+            help="Priority",
+            options=["High", "Medium", "Low"],
+            required=True,
+        ),
+    },
+    # Disable editing the ID and Date Submitted columns.
+    disabled=["ID", "Date Submitted"],
+)
