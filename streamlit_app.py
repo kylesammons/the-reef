@@ -5,6 +5,8 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+from google.cloud import bigquery
+from google.oauth2 import service_account
 
 # Show app title and description.
 st.set_page_config(page_title="The Reef", page_icon="🎫")
