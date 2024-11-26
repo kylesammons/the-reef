@@ -7,8 +7,8 @@ import pandas as pd
 import streamlit as st
 
 # Show app title and description.
-st.set_page_config(page_title="Support tickets", page_icon="🎫")
-st.title("🎫 Support tickets")
+st.set_page_config(page_title="The Reef", page_icon="🎫")
+st.title("🎫 The Reef")
 
 # Create a random Pandas dataframe with existing tickets.
 if "df" not in st.session_state:
