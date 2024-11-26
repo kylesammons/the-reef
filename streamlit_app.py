@@ -29,7 +29,7 @@ with st.form("add_ticket_form"):
     st.session_state.client_id = client_ids[0] if len(client_ids) > 0 else None
 
     # Account ID with shorter height
-    account_id = st.text_area("Account ID", height=40)  # Shortened height
+    account_id = st.text_area("Account ID")  # Shortened height
 
     data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
     
