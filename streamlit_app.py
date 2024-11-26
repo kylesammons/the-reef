@@ -26,8 +26,13 @@ with st.form("add_ticket_form"):
     Client_Name = st.selectbox("Client Name", st.session_state.df["Client_Name"].unique())
     client_id = st.selectbox("Client ID", st.session_state.df["Client_ID"].unique())
     data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
-    Campaign_ID = st.text_area("Campaign ID")
-    Campaign_Name = st.text_area("Campaign Name")
+        # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
+            if client_name == "Window World" and data_source_name == "Facebook Ads":
+                campaign_id = st.text_area("Campaign ID")
+                campaign_name = st.text_area("Campaign Name")
+            else:
+                campaign_id = None
+                campaign_name = None
     submitted = st.form_submit_button("Submit")
 
 if submitted:
