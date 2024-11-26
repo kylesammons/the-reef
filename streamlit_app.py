@@ -76,7 +76,7 @@ if submitted:
 st.header("The Reef")
 st.write(f"Number of tickets: `{len(st.session_state.df)}`")
 st.info(
-    "You can edit the tickets by double-clicking on a cell. Note how the plots below "
+    "You can edit the accounts by double-clicking on a cell. Note how the rows below "
     "update automatically! You can also sort the table by clicking on the column headers.",
     icon="✍️"
 )
