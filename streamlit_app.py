@@ -52,6 +52,7 @@ if submitted:
         "Account_ID": account_id,
         "Data_Source_Name": data_source_name,
         "Client_Name": client_name,
+        "Date Submitted": today,
     }
 
     # Add campaign info if applicable
