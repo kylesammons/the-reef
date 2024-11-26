@@ -28,8 +28,8 @@ with st.form("add_ticket_form"):
     client_ids = st.session_state.df[st.session_state.df["Client_Name"] == client_name]["Client_ID"].unique()
     st.session_state.client_id = client_ids[0] if len(client_ids) > 0 else None
 
-    # Account ID with shorter height
-    account_id = st.text_area("Account ID")  # Shortened height
+    # Use st.text_input for a shorter height Account ID
+    account_id = st.text_input("Account ID")  # Single-line input
 
     data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
     
@@ -43,12 +43,11 @@ with st.form("add_ticket_form"):
 
     submitted = st.form_submit_button("Submit")
 
-
 if submitted:
     # Use the dynamically populated client_id from session state
     client_id = st.session_state.client_id
     
-    # Generate new account
+    # Generate new ticket
     new_data = {
         "Client_ID": client_id,
         "Account_ID": account_id,
@@ -66,30 +65,9 @@ if submitted:
 
     df_new = pd.DataFrame([new_data])
     
-    st.write("Account submitted! Your account should begin showing up in reports beginning 6:00 am EST tomorrow morning. Here are the submission details:")
+    st.write("Ticket submitted! Here are the ticket details:")
     st.dataframe(df_new, use_container_width=True, hide_index=True)
 
     # Update session state and save to CSV
     st.session_state.df = pd.concat([st.session_state.df, df_new], axis=0, ignore_index=True)
-    st.session_state.df.to_csv(csv_file, index=False)
-
-# Show and edit existing accounts
-st.header("The Reef")
-st.write(f"Number of paid media accounts: `{len(st.session_state.df)}`")
-st.info(
-    "You can edit the accounts by double-clicking on a cell. Note how the plots below "
-    "update automatically! You can also sort the table by clicking on the column headers.",
-    icon="✍️"
-)
-
-# Editable table
-edited_df = st.data_editor(
-    st.session_state.df,
-    use_container_width=True,
-    hide_index=True,
-)
-
-# Save changes back to CSV
-if not edited_df.equals(st.session_state.df):
-    st.session_state.df = edited_df
     st.session_state.df.to_csv(csv_file, index=False)
