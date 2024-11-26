@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "trimark-tdp",
+  "private_key_id": "0b42c5927efa5ba2f77ef45944107dffff4c0f0e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDZkPUPsHA//Gfs\nGq5WjvsHifSPJsjjleBNByKYlpsH5FwcMxyLbKFollOy8F7yXpfeJEFZGbcJ69yU\nynOungEfvVqMop5ReHuHNOaqXxX5kWOssCYhCX2UDGZwlvXXMcZMG6a0C/jPHkbT\nwqheln2bNEYIADxpr1wi9cA/OijosSbwiIb5imJbxODg9+E1asXclt+IjzrbSNlU\n8uGG/3EN7P522tdGQdBA1E+77vqb3NQq5YZxcQkcc1LVovPo2f00GE/0yC4ENYuG\nB8l17Tkdkzhy0kTxUvTFOGknyTRfh/amYgYtHDZmUlFgEQSIpS2misQuWdL5K7gp\n/Q2ZXLnPAgMBAAECggEALh4wFDdOVAHo9X9iXS7Jv3tav8103+kxNqLAjp++FRou\n/DtJXbSVMlpLO68AMVgj0Q7WW1C8H/pDM7cGdok/q76zpwQBkzt609o+2vZ07gYH\nnt9n9bDRUcSfIladnhQK+K8T0y6Ge0Druo+UqRg1X+Tgw2lpZO2rFi4Jpl1ptokS\nbLXkajydG/4A2L2uNgs4TDLBZPwRMxR4yMxiVaJtPUfEEekTnft3qUPkNp7CRYBT\nejf4orYfV5xna4/iqUOCLVOS9p+KH9r6DG0D1ENqDY5KoZs5DzlhObQcndswroVl\nGB6biKgj+g3BhSJb0B0qJDcCIeNJbtjKUA7Mq8eYoQKBgQD9hbBu0mZBthR19MMX\njKYAqMH01W8R3G3iAChORqgaTddroSEXXcVifOpHAgM1ghXvZC9he1u6dD+7vF5e\nAFYHp9V90EsUMxMlxUMqfqy43+ZrZwUmQZGajv4obCHN8V7hNdf+wCnRAKa1N44x\ntrnL0vloFghmw206nk5bQy9vMwKBgQDbsU50SjV2NxCFoR8P6VBDVWNMTGsofsml\nfPFKKoIvnWvdZmZtcTzb81GlK2HD/X9gH1KnrQ7bREDgS3ptfkHZq2ihKFlpJEK4\nw11+b31FLh2TerPvZHNuWhm0DiP/3biuShE45kgvQKKgAv5+ctBJ2EOf5J7CMSIN\nos6siiN69QKBgQDB+OrgL+z7M/P9uDMYro1IjdYwnKjpso0EUPiFw3vU/F/pQpRO\nC3n9e/PINpr78rcTvcSewkKRq2YkHuDY7Urlep1XMOpw3w80Y/Sa6+b9YJos7Nq8\nxYhBCE0f4nQO3TGqAIdtq9uSxPvIRWRvVw5bC+W1pL3y2m2VXxA2tXXyjwKBgDnN\nRcINAFHxHPS7tqt+DHMa1Txu4sbNzQowfF+yHXyfo5Cl748d+xA3zaRybI+fc9L7\nisi5HK6OH6+jzDtgu7ykf6vfLN8f/joUlNW+SaxY/MkfwJXczQ4cwKSCD/CzCnM4\n450f4aAlFmSZRRJJ7Qlw0CISib64JKiHzG7TDZC9AoGACX926kF1jYST4Ceqw7wZ\nIS/Io6sEF5V+pj3buoFogONqjttsFdVu1ev0bqDRh8yqNcf0ytBa8G9V6Qg4v1A6\nizalU0kCn1ahQQCOxgyGhholXVYjBYjqGJkf8cm7oac4hsHfL3/NQn1a5NS8+zzh\nVYbv5objUnhWiwiLC7GJDeg=\n-----END PRIVATE KEY-----\n",
+  "client_email": "tdp-jupyer-lab@trimark-tdp.iam.gserviceaccount.com",
+  "client_id": "109764278701290973262",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tdp-jupyer-lab%40trimark-tdp.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
