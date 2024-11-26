@@ -1,5 +1,4 @@
 import os
-import datetime
 import pandas as pd
 import streamlit as st
 
@@ -22,10 +21,10 @@ if "df" not in st.session_state:
 # Section to add a new ticket
 st.header("Add an Account")
 with st.form("add_ticket_form"):
-    # Select Client Name, and preselect Client ID based on the selected Client Name
+    # Select Client Name
     client_name = st.selectbox("Client Name", st.session_state.df["Client_Name"].unique())
-    
-    # Filter to get Client_ID corresponding to selected Client_Name
+
+    # Dynamically update Client_ID based on the selected Client_Name
     client_ids = st.session_state.df[st.session_state.df["Client_Name"] == client_name]["Client_ID"].unique()
     client_id = st.selectbox("Client ID", client_ids, index=0 if len(client_ids) > 0 else None)
 
