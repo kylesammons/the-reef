@@ -21,7 +21,8 @@ if "df" not in st.session_state:
 st.header("Add an Account")
 with st.form("add_ticket_form"):
     account_id = st.text_area("Account ID")
-    client_id = st.selectbox(df.client_id)
+    client_id_options = st.session_state.df['client_id'].unique().tolist()
+    client_id = st.selectbox("Client ID", client_id_options)
     data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads","El Toro","Adelphic"])
     submitted = st.form_submit_button("Submit")
 
