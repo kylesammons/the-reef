@@ -21,8 +21,12 @@ with st.form("add_ticket_form"):
     account_id = st.text_area("Account ID")
     
     # Populate client_id options dynamically
-    client_id_options = st.session_state.df['client_id'].unique().tolist()
-    client_id = st.selectbox("Client ID", client_id_options)
+    client_id_options = st.session_state.df['client_id'].dropna().unique().tolist()
+    if not client_id_options:
+        st.warning("No client IDs available in the dataset.")
+        client_id = None
+    else:
+        client_id = st.selectbox("Client ID", client_id_options)
     
     data_source_name = st.selectbox(
         "Data Source", 
