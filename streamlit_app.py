@@ -10,8 +10,8 @@ st.title("🎫 The Reef")
 
 
 # Fetch data from BigQuery
-data = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
-df = pd.DataFrame(data)
+df = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
+
 
 
 # Initialize session state
