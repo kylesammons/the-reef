@@ -88,4 +88,6 @@ edited_df = st.data_editor(
 )
 
 # Save changes back to CSV
-if not edited_df.equals(st.session_state.
+if not edited_df.equals(st.session_state.df):
+    st.session_state.df = edited_df
+    st.session_state.df.to_csv(csv_file, index=False)
