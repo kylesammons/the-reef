@@ -37,9 +37,9 @@ if submitted:
             "Client_ID": client_id,
             "Account_ID": account_id,
             "Data_Source_Name": data_source_name,
-            "Client_Name" = client_name
-            "Campaign_ID" = campaign_id
-            "Campaign_Name" = campaign_name
+            "Client_Name": client_name,
+            "Campaign_ID": campaign_id,
+            "Campaign_Name": campaign_name,
         }]
     )
     st.write("Ticket submitted! Here are the ticket details:")
