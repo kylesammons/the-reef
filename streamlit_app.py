@@ -8,14 +8,14 @@ st.set_page_config(page_title="The Reef", page_icon="🎫")
 # App title
 st.title("🎫 The Reef")
 
-# Load the original DataFrame
-csv_path = '/Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
-original_df = pd.read_csv(csv_path)
+
+# Fetch data from BigQuery
+df = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
+
 
 # Initialize session state
 if "df" not in st.session_state:
-    # Copy the original DataFrame to session state
-    st.session_state.df = original_df.copy()
+    st.session_state.df = df
 
 # Section to add a new ticket
 st.header("Add an Account")
@@ -26,13 +26,14 @@ with st.form("add_ticket_form"):
     submitted = st.form_submit_button("Submit")
 
 if submitted:
-    # Generate a new ticket
+    # Generate new ticket
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     df_new = pd.DataFrame(
         [{
             "Client ID": client_id,
             "Account ID": account_id,
             "Status": "Active",
+            "Priority": "Medium",
             "Data Source": data_source_name,
             "Date Submitted": today,
         }]
@@ -40,10 +41,10 @@ if submitted:
     st.write("Ticket submitted! Here are the ticket details:")
     st.dataframe(df_new, use_container_width=True, hide_index=True)
 
-    # Update session state DataFrame
-    st.session_state.df = pd.concat([df_new, st.session_state.df], axis=0, ignore_index=True)
+    # Update session state
+    st.session_state.df = pd.concat([df_new, st.session_state.df], axis=0)
 
-# Show and edit existing tickets
+    # Show and edit existing tickets
 st.header("The Reef")
 st.write(f"Number of tickets: `{len(st.session_state.df)}`")
 st.info(
@@ -52,12 +53,9 @@ st.info(
     icon="✍️"
 )
 
-# Display the session DataFrame with editable columns
+# Display tickets with editable columns
 edited_df = st.data_editor(
     st.session_state.df,
     use_container_width=True,
     hide_index=True,
 )
-
-# Optionally, update session state with edits
-st.session_state.df = edited_df
