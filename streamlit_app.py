@@ -31,7 +31,7 @@ with st.form("add_ticket_form"):
     # Use st.text_input for a shorter height Account ID
     account_id = st.text_input("Account ID")  # Single-line input
 
-    data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
+    data_source_name = st.selectbox("Data Source", st.session_state.df["Data_Source_Name"].unique())
     
     # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
     if client_name == "Window World" and data_source_name == "Facebook Ads":
@@ -65,7 +65,7 @@ if submitted:
 
     df_new = pd.DataFrame([new_data])
     
-    st.write("Ticket submitted! Here are the ticket details:")
+    st.write("Account submitted! Here are the account details:")
     st.dataframe(df_new, use_container_width=True, hide_index=True)
 
     # Update session state and save to CSV
