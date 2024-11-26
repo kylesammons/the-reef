@@ -9,7 +9,7 @@ st.set_page_config(page_title="The Reef", page_icon="🎫")
 st.title("🎫 The Reef")
 
 # Load data from CSV
-df_path = 'the-reef/reefpaidmedia.csv'
+df_path = 'reefpaidmedia.csv'
 try:
     df = pd.read_csv(df_path)
 except FileNotFoundError:
