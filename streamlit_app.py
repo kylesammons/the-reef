@@ -21,8 +21,8 @@ if "df" not in st.session_state:
 st.header("Add an Account")
 with st.form("add_ticket_form"):
     account_id = st.text_area("Account ID")
-    client_id = st.text_area("Client ID")
-    data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
+    client_id = st.selectbox(df.client_id)
+    data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads","El Toro","Adelphic"])
     submitted = st.form_submit_button("Submit")
 
 if submitted:
@@ -33,12 +33,11 @@ if submitted:
             "Client ID": client_id,
             "Account ID": account_id,
             "Status": "Active",
-            "Priority": "Medium",
             "Data Source": data_source_name,
             "Date Submitted": today,
         }]
     )
-    st.write("Ticket submitted! Here are the ticket details:")
+    st.write("Account submitted! Here are the account details:")
     st.dataframe(df_new, use_container_width=True, hide_index=True)
 
     # Update session state
