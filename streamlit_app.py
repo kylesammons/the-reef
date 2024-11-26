@@ -8,8 +8,10 @@ st.set_page_config(page_title="The Reef", page_icon="🎫")
 # App title
 st.title("🎫 The Reef")
 
-# Load data from CSV
-df_path = 'reefpaidmedia.csv'
+
+# Fetch data from BigQuery
+df = 'reefpaidmedia.csv'
+
 
 # Initialize session state
 if "df" not in st.session_state:
@@ -19,19 +21,8 @@ if "df" not in st.session_state:
 st.header("Add an Account")
 with st.form("add_ticket_form"):
     account_id = st.text_area("Account ID")
-    
-    # Populate client_id options dynamically
-    client_id_options = st.session_state.df['client_id'].dropna().unique().tolist()
-    if not client_id_options:
-        st.warning("No client IDs available in the dataset.")
-        client_id = None
-    else:
-        client_id = st.selectbox("Client ID", client_id_options)
-    
-    data_source_name = st.selectbox(
-        "Data Source", 
-        ["Google Ads", "Microsoft Ads", "Facebook Ads", "El Toro", "Adelphic"]
-    )
+    client_id = st.text_area("Client ID")
+    data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
     submitted = st.form_submit_button("Submit")
 
 if submitted:
@@ -42,17 +33,18 @@ if submitted:
             "Client ID": client_id,
             "Account ID": account_id,
             "Status": "Active",
+            "Priority": "Medium",
             "Data Source": data_source_name,
             "Date Submitted": today,
         }]
     )
-    st.write("Account submitted! Here are the account details:")
+    st.write("Ticket submitted! Here are the ticket details:")
     st.dataframe(df_new, use_container_width=True, hide_index=True)
 
     # Update session state
     st.session_state.df = pd.concat([df_new, st.session_state.df], axis=0)
 
-# Show and edit existing tickets
+    # Show and edit existing tickets
 st.header("The Reef")
 st.write(f"Number of tickets: `{len(st.session_state.df)}`")
 st.info(
