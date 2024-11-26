@@ -53,6 +53,8 @@ st.info(
     icon="✍️"
 )
 
+print(df)
+
 # Display tickets with editable columns
 edited_df = st.data_editor(
     st.session_state.df,
