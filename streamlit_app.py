@@ -18,7 +18,7 @@ if "df" not in st.session_state:
     else:
         st.session_state.df = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
 
-# Section to add a new account
+# Section to add a new ticket
 st.header("Add an Account")
 with st.form("add_ticket_form"):
     # Select Client Name
@@ -26,11 +26,12 @@ with st.form("add_ticket_form"):
     
     # Dynamically get Client_ID based on selected Client_Name but hide it
     client_ids = st.session_state.df[st.session_state.df["Client_Name"] == client_name]["Client_ID"].unique()
-    # Store the client_id in the session state, so it is retained but hidden from the form
     st.session_state.client_id = client_ids[0] if len(client_ids) > 0 else None
 
-    account_id = st.text_area("Account ID", height=40)
-    data_source_name = st.selectbox("Data Source", st.session_state.df["Data_Source_Name"].unique())
+    # Account ID with shorter height
+    account_id = st.text_area("Account ID", height=40)  # Shortened height
+
+    data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads"])
     
     # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
     if client_name == "Window World" and data_source_name == "Facebook Ads":
@@ -41,6 +42,7 @@ with st.form("add_ticket_form"):
         campaign_name = None
 
     submitted = st.form_submit_button("Submit")
+
 
 if submitted:
     # Use the dynamically populated client_id from session state
