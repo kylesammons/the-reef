@@ -74,7 +74,7 @@ if submitted:
 
 # Show and edit existing tickets
 st.header("The Reef")
-st.write(f"Number of tickets: `{len(st.session_state.df)}`")
+st.write(f"Number of paid media accounts: `{len(st.session_state.df)}`")
 st.info(
     "You can edit the accounts by double-clicking on a cell. Note how the rows below "
     "update automatically! You can also sort the table by clicking on the column headers.",
