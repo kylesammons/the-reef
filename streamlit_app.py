@@ -8,10 +8,13 @@ st.set_page_config(page_title="The Reef", page_icon="🎫")
 # App title
 st.title("🎫 The Reef")
 
-
-# Fetch data from BigQuery
-df = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
-
+# Load data from CSV
+df_path = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
+try:
+    df = pd.read_csv(df_path)
+except FileNotFoundError:
+    st.error(f"Could not find the file at `{df_path}`. Please check the path.")
+    st.stop()
 
 # Initialize session state
 if "df" not in st.session_state:
@@ -21,9 +24,15 @@ if "df" not in st.session_state:
 st.header("Add an Account")
 with st.form("add_ticket_form"):
     account_id = st.text_area("Account ID")
+    
+    # Populate client_id options dynamically
     client_id_options = st.session_state.df['client_id'].unique().tolist()
     client_id = st.selectbox("Client ID", client_id_options)
-    data_source_name = st.selectbox("Data Source", ["Google Ads", "Microsoft Ads", "Facebook Ads","El Toro","Adelphic"])
+    
+    data_source_name = st.selectbox(
+        "Data Source", 
+        ["Google Ads", "Microsoft Ads", "Facebook Ads", "El Toro", "Adelphic"]
+    )
     submitted = st.form_submit_button("Submit")
 
 if submitted:
@@ -44,7 +53,7 @@ if submitted:
     # Update session state
     st.session_state.df = pd.concat([df_new, st.session_state.df], axis=0)
 
-    # Show and edit existing tickets
+# Show and edit existing tickets
 st.header("The Reef")
 st.write(f"Number of tickets: `{len(st.session_state.df)}`")
 st.info(
