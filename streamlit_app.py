@@ -9,8 +9,8 @@ st.set_page_config(page_title="The Reef", page_icon="🎫")
 st.title("🎫 The Reef")
 
 
-# Fetch data from BigQuery
-df = 'Users/Trimark/Desktop/Jupyter_Notebooks/reefpaidmedia.csv'
+# Fetch data from csv
+df = 'reefpaidmedia.csv'
 
 
 
