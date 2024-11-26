@@ -1,6 +1,5 @@
 import datetime
 import pandas as pd
-from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 import streamlit as st
 
 # Set Streamlit page config
@@ -57,27 +56,3 @@ st.info(
 
 # Display the DataFrame with editable columns
 st.header("Edit Tickets")
-
-# Configure AgGrid options
-gb = GridOptionsBuilder.from_dataframe(st.session_state.df)
-gb.configure_default_column(editable=True, resizable=True)
-gb.configure_grid_options(enableRangeSelection=True, domLayout='autoHeight')
-
-# Enable editing
-grid_options = gb.build()
-
-# Display the grid with AgGrid
-response = AgGrid(
-    st.session_state.df,
-    gridOptions=grid_options,
-    update_mode=GridUpdateMode.VALUE_CHANGED,
-    fit_columns_on_grid_load=True,
-    theme="streamlit",  # Use "streamlit" theme for better UI integration
-)
-
-# Update session state with edited data
-if response['data'] is not None:
-    st.session_state.df = pd.DataFrame(response['data'])
-
-# Display a message or confirmation after editing
-st.success("Data updated! Changes are reflected in real-time.")
