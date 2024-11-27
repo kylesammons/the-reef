@@ -35,8 +35,8 @@ with st.form("add_ticket_form"):
     
     # Conditionally display campaign fields only for "Window World" client and "Facebook Ads" data source
     if "Window World" in client_name and data_source_name == "Facebook Ads":
-        campaign_id = st.text_area("Campaign ID")
-        campaign_name = st.text_area("Campaign Name")
+        campaign_id = st.text_input("Campaign ID")
+        campaign_name = st.text_input("Campaign Name")
     else:
         campaign_id = None
         campaign_name = None
