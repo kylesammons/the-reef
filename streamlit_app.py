@@ -81,6 +81,9 @@ st.info(
     icon="✍️"
 )
 
+# Ensure Campaign_ID is treated as a string
+st.session_state.df["Campaign_ID"] = st.session_state.df["Campaign_ID"].astype(str)
+
 # Select only the desired columns
 columns_to_display = ["Account_Name", "Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
 edited_df = st.data_editor(
@@ -89,7 +92,9 @@ edited_df = st.data_editor(
     hide_index=True,
 )
 
-# Save changes back to CSV
-if not edited_df.equals(st.session_state.df):
-    st.session_state.df = edited_df
+# Save changes back to CSV if any changes are made
+if not edited_df.equals(st.session_state.df[columns_to_display]):
+    # Update only the selected columns in the original DataFrame
+    st.session_state.df.update(edited_df)
     st.session_state.df.to_csv(csv_file, index=False)
+
