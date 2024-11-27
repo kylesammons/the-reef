@@ -81,9 +81,6 @@ st.info(
     icon="✍️"
 )
 
-# Ensure Campaign_ID is treated as a string
-st.session_state.df["Campaign_ID"] = st.session_state.df["Campaign_ID"].astype(str)
-
 # Select only the desired columns
 columns_to_display = ["Account_Name", "Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
 edited_df = st.data_editor(
