@@ -18,7 +18,7 @@ if "df" not in st.session_state:
     else:
         st.session_state.df = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
 
-# Section to add a new ticket
+# Section to add a new account
 st.header("Add an Account")
 with st.form("add_ticket_form"):
     # Select Client Name
@@ -47,7 +47,7 @@ if submitted:
     # Use the dynamically populated client_id from session state
     client_id = st.session_state.client_id
     
-    # Generate new ticket
+    # Generate new account
     new_data = {
         "Client_ID": client_id,
         "Account_ID": account_id,
@@ -72,7 +72,7 @@ if submitted:
     st.session_state.df = pd.concat([st.session_state.df, df_new], axis=0, ignore_index=True)
     st.session_state.df.to_csv(csv_file, index=False)
 
-# Show and edit existing tickets
+# Show and edit existing accounts
 st.header("The Reef")
 st.write(f"Number of paid media accounts: `{len(st.session_state.df)}`")
 st.info(
