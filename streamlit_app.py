@@ -11,7 +11,7 @@ st.set_page_config(page_title="The Reef", page_icon=":ocean:", layout="wide", in
 # BigQuery configuration
 PROJECT_ID = "trimark-tdp"  # Replace with your actual project ID
 DATASET_ID = "reference"     # Replace with your dataset name
-TABLE_ID = "paid_media_test"      # Replace with your table name
+TABLE_ID = "paidmedia_test"      # Replace with your table name
 
 @st.cache_resource
 def init_bigquery_client():
