@@ -272,6 +272,12 @@ with tab1:
     available_columns = [col for col in columns_to_display if col in display_df.columns]
     
     if len(available_columns) > 0:
+        # Create a placeholder for the status message above the data editor
+        status_placeholder = st.empty()
+        
+        # Check if there are pending accounts (we can check this before data editor)
+        has_pending = not st.session_state.pending_accounts.empty
+        
         # Display the data editor for all accounts
         edited_df = st.data_editor(
             display_df[available_columns],
@@ -279,22 +285,24 @@ with tab1:
             hide_index=True,
             key="all_accounts_editor"
         )
-    
-    # Check if there are unsaved changes (including pending accounts and edits)
-        has_pending = not st.session_state.pending_accounts.empty
+        
+        # Check for edits after data_editor is created
         has_edits = not edited_df.equals(display_df[available_columns])
         has_changes = has_pending or has_edits
         
-        # Show status message
+        # Show status message in the placeholder above the data editor
         if has_changes:
             if has_pending and has_edits:
-                st.warning("⚠️ You have pending accounts and unsaved edits. Click 'Save' to commit all changes to BigQuery.")
+                status_placeholder.warning("⚠️ You have pending accounts and unsaved edits. Click 'Save' to commit all changes to BigQuery.")
             elif has_pending:
-                st.warning("⚠️ You have pending accounts. Click 'Save' to commit them to BigQuery.")
+                status_placeholder.warning("⚠️ You have pending accounts. Click 'Save' to commit them to BigQuery.")
             elif has_edits:
-                st.warning("⚠️ You have unsaved edits. Click 'Save' to update BigQuery.")
-    
-    # Only save to BigQuery when Save button is explicitly clicked
+                status_placeholder.warning("⚠️ You have unsaved edits. Click 'Save' to update BigQuery.")
+        else:
+            # Clear the status message if no changes
+            status_placeholder.empty()
+        
+        # Only save to BigQuery when Save button is explicitly clicked
         if save_clicked and has_changes:
             # Create the final dataframe to save (original + pending + edits)
             final_df = edited_df.copy()
@@ -306,15 +314,15 @@ with tab1:
                     st.session_state.original_df = final_df.copy()
                     # Clear pending accounts since they're now saved
                     st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                    st.success("All changes saved successfully to BigQuery!")
+                    # Show success message in the status placeholder
+                    status_placeholder.success("✅ All changes saved successfully to BigQuery!")
+                    # Brief delay to show success message, then rerun
                     st.rerun()
                 else:
-                    st.error("Failed to save changes to BigQuery")
+                    status_placeholder.error("❌ Failed to save changes to BigQuery")
     else:
         st.warning("No data available to display.")
         
-        
-
 with tab2:
     st.header("GA4")
     st.info("GA4 content coming soon...")
