@@ -1,3 +1,4 @@
 streamlit
 google-cloud-bigquery>=3.4.0
 google-auth>=2.0.0
+db-dtypes
