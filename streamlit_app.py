@@ -6,7 +6,7 @@ from google.oauth2 import service_account
 import json
 
 # Set Streamlit page config
-st.set_page_config(page_title="The Reef", page_icon=":ocean:", layout="wide")
+st.set_page_config(page_title="The Reef", page_icon=":ocean:", layout="wide", initial_sidebar_state="expanded")
 
 # BigQuery configuration
 PROJECT_ID = "trimark-tdp"  # Replace with your actual project ID
@@ -118,6 +118,10 @@ if "df" not in st.session_state:
     with st.spinner("Loading data from BigQuery..."):
         st.session_state.df = load_data_from_bigquery()
 
+# Initialize original dataframe for comparison (to track changes)
+if "original_df" not in st.session_state:
+    st.session_state.original_df = st.session_state.df.copy()
+
 # Sidebar for inputs
 with st.sidebar:
     st.image("Waves-Logo_Color.svg", width=200)
@@ -216,8 +220,9 @@ if submitted and form_valid:
     # Insert new row to BigQuery
     with st.spinner("Adding account to BigQuery..."):
         if insert_row_to_bigquery(new_data):
-            # Refresh local data
+            # Refresh local data and update original_df
             st.session_state.df = load_data_from_bigquery()
+            st.session_state.original_df = st.session_state.df.copy()
             st.success("Account added successfully!")
         else:
             st.error("Failed to add account to BigQuery")
@@ -241,6 +246,7 @@ with tab1:
     available_columns = [col for col in columns_to_display if col in st.session_state.df.columns]
     
     if len(available_columns) > 0:
+        # Display the data editor
         edited_df = st.data_editor(
             st.session_state.df[available_columns],
             use_container_width=True,
@@ -248,21 +254,39 @@ with tab1:
             key="paid_media_editor"
         )
         
-        # Save button
-        if st.button("💾 Save", key="save_paid_media", type="primary"):
-            # Save changes back to BigQuery if any changes are made
-            if not edited_df.equals(st.session_state.df[available_columns]):
-                # Update the session state dataframe
-                for col in available_columns:
-                    st.session_state.df[col] = edited_df[col]
-                
-                with st.spinner("Saving changes to BigQuery..."):
-                    if save_data_to_bigquery(st.session_state.df):
-                        st.success("Changes saved successfully!")
-                    else:
-                        st.error("Failed to save changes to BigQuery")
-            else:
-                st.info("No changes to save.")
+        # Check if there are unsaved changes
+        has_changes = not edited_df.equals(st.session_state.original_df[available_columns])
+        
+        # Show status message
+        if has_changes:
+            st.warning("⚠️ You have unsaved changes. Click 'Save' to update BigQuery.")
+        else:
+            st.success("✅ All changes saved.")
+        
+        # Save button - only save when explicitly clicked
+        col1, col2, col3 = st.columns([1, 1, 4])
+        with col1:
+            save_clicked = st.button("💾 Save", key="save_paid_media", type="primary", disabled=not has_changes)
+        
+        with col2:
+            # Reset/Cancel button to discard changes
+            if st.button("↶ Reset", key="reset_changes", disabled=not has_changes):
+                st.rerun()
+        
+        # Only save to BigQuery when Save button is explicitly clicked
+        if save_clicked and has_changes:
+            # Update the session state dataframe with edited data
+            for col in available_columns:
+                st.session_state.df[col] = edited_df[col]
+            
+            with st.spinner("Saving changes to BigQuery..."):
+                if save_data_to_bigquery(st.session_state.df):
+                    # Update the original_df to match the saved state
+                    st.session_state.original_df = st.session_state.df.copy()
+                    st.success("Changes saved successfully to BigQuery!")
+                    st.rerun()
+                else:
+                    st.error("Failed to save changes to BigQuery")
     else:
         st.warning("No data available to display.")
 
@@ -326,6 +350,7 @@ with tab6:
             if st.button("🔄 Refresh from BigQuery"):
                 with st.spinner("Refreshing data..."):
                     st.session_state.df = load_data_from_bigquery()
+                    st.session_state.original_df = st.session_state.df.copy()
                     st.success("Data refreshed!")
                     st.rerun()
             
@@ -336,6 +361,7 @@ with tab6:
                     with st.spinner("Clearing all data..."):
                         if save_data_to_bigquery(empty_df):
                             st.session_state.df = empty_df
+                            st.session_state.original_df = empty_df.copy()
                             st.success("All data cleared!")
                             st.rerun()
                         else:
