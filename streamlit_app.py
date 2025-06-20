@@ -41,16 +41,26 @@ def load_data_from_bigquery():
     
     try:
         query = f"""
-        SELECT Client_ID, Account_ID, Data_Source_Name, Client_Name, CAST(Campaign_ID as STRING) as Campaign_ID, Campaign_Name
+        SELECT 
+            Client_ID, 
+            Account_ID, 
+            Data_Source_Name, 
+            Client_Name, 
+            CAST(Campaign_ID AS STRING) as Campaign_ID,
+            Campaign_Name
         FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
         ORDER BY Client_Name, Data_Source_Name
         """
         
         df = client.query(query).to_dataframe()
+        
+        # Ensure all columns are strings and handle nulls
+        df = df.fillna('')  # Replace NaN with empty strings
+        df = df.astype(str)  # Convert all columns to string type
+        
         return df
     except Exception as e:
         st.error(f"Error loading data from BigQuery: {str(e)}")
-        # Return empty DataFrame with expected columns if query fails
         return pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
 
 def save_data_to_bigquery(df):
