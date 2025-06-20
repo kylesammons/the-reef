@@ -56,6 +56,8 @@ def load_data_from_bigquery():
         
         # Ensure all columns are strings and handle nulls
         df = df.fillna('')  # Replace NaN with empty strings
+        # Convert Campaign_ID column specifically to handle nulls properly
+        df['Campaign_ID'] = df['Campaign_ID'].astype(str).replace('None', '')
         df = df.astype(str)  # Convert all columns to string type
         
         return df
@@ -70,6 +72,14 @@ def save_data_to_bigquery(df):
         return False
     
     try:
+        # Create a copy of the dataframe to avoid modifying the original
+        df_to_save = df.copy()
+        
+        # Convert Campaign_ID column: empty strings to None (NULL in BigQuery)
+        df_to_save['Campaign_ID'] = df_to_save['Campaign_ID'].apply(
+            lambda x: int(x) if x and x.isdigit() else None
+        )
+        
         # Configure the job to replace the table
         job_config = bigquery.LoadJobConfig(
             write_disposition="WRITE_TRUNCATE",  # This replaces the table
@@ -77,32 +87,12 @@ def save_data_to_bigquery(df):
         )
         
         table_ref = client.dataset(DATASET_ID).table(TABLE_ID)
-        job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
+        job = client.load_table_from_dataframe(df_to_save, table_ref, job_config=job_config)
         job.result()  # Wait for the job to complete
         
         return True
     except Exception as e:
         st.error(f"Error saving data to BigQuery: {str(e)}")
-        return False
-
-def insert_row_to_bigquery(new_data):
-    """Insert a single row to BigQuery table"""
-    client = init_bigquery_client()
-    if not client:
-        return False
-    
-    try:
-        table_ref = client.dataset(DATASET_ID).table(TABLE_ID)
-        table = client.get_table(table_ref)
-        
-        # Insert the row
-        errors = client.insert_rows_json(table, [new_data])
-        if errors:
-            st.error(f"Error inserting row: {errors}")
-            return False
-        return True
-    except Exception as e:
-        st.error(f"Error inserting row to BigQuery: {str(e)}")
         return False
 
 # App title
@@ -121,6 +111,10 @@ if "df" not in st.session_state:
 # Initialize original dataframe for comparison (to track changes)
 if "original_df" not in st.session_state:
     st.session_state.original_df = st.session_state.df.copy()
+
+# Initialize pending accounts dataframe
+if "pending_accounts" not in st.session_state:
+    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
 
 # Sidebar for inputs
 with st.sidebar:
@@ -201,31 +195,25 @@ with st.sidebar:
         for error in error_messages:
             st.error(error)
 
-# Handle form submission
+# Handle form submission - add to pending accounts
 if submitted and form_valid:
     # Get Client_ID based on selected Client_Name
     client_ids = st.session_state.df[st.session_state.df["Client_Name"] == client_name]["Client_ID"].unique()
     client_id = client_ids[0] if len(client_ids) > 0 else None
     
     # Generate new account data
-    new_data = {
+    new_account = pd.DataFrame([{
         "Client_ID": client_id,
         "Account_ID": account_id,
         "Data_Source_Name": data_source_name,
         "Client_Name": client_name,
         "Campaign_ID": campaign_id if campaign_id else "",
         "Campaign_Name": ""  # Empty for now, can be filled later
-    }
+    }])
     
-    # Insert new row to BigQuery
-    with st.spinner("Adding account to BigQuery..."):
-        if insert_row_to_bigquery(new_data):
-            # Refresh local data and update original_df
-            st.session_state.df = load_data_from_bigquery()
-            st.session_state.original_df = st.session_state.df.copy()
-            st.success("Account added successfully!")
-        else:
-            st.error("Failed to add account to BigQuery")
+    # Add to pending accounts
+    st.session_state.pending_accounts = pd.concat([st.session_state.pending_accounts, new_account], ignore_index=True)
+    st.success("Account added to pending list! Click 'Save' to commit to BigQuery.")
 
 # Initialize master access in session state
 if "master_access" not in st.session_state:
@@ -237,53 +225,100 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Paid Media", "GA4", "Forms", "Mar
 with tab1:
     st.header("Paid Media")
     
-    st.write(f"Number of paid media accounts: `{len(st.session_state.df)}`")
+    # Show pending accounts if any
+    if not st.session_state.pending_accounts.empty:
+        st.subheader("📋 Pending Accounts (Not yet saved to BigQuery)")
+        
+        # Select only the desired columns for display
+        columns_to_display = ["Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
+        available_columns = [col for col in columns_to_display if col in st.session_state.pending_accounts.columns]
+        
+        # Display pending accounts as editable dataframe
+        edited_pending = st.data_editor(
+            st.session_state.pending_accounts[available_columns],
+            use_container_width=True,
+            hide_index=True,
+            key="pending_accounts_editor"
+        )
+        
+        # Update pending accounts with any edits
+        for col in available_columns:
+            st.session_state.pending_accounts[col] = edited_pending[col]
+        
+        # Buttons for pending accounts
+        col1, col2, col3 = st.columns([1, 1, 4])
+        
+        with col1:
+            if st.button("🗑️ Clear Pending", type="secondary"):
+                st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+                st.rerun()
+        
+        st.write("---")  # Separator
+    
+    # Combined dataframe for display (original + pending + edits)
+    if st.session_state.pending_accounts.empty:
+        display_df = st.session_state.df.copy()
+    else:
+        display_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
+    
+    st.subheader("📊 All Accounts")
+    st.write(f"Total accounts (including pending): `{len(display_df)}`")
+    st.write(f"Saved in BigQuery: `{len(st.session_state.df)}` | Pending: `{len(st.session_state.pending_accounts)}`")
     
     # Select only the desired columns for display
     columns_to_display = ["Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
     
     # Check if dataframe has the required columns
-    available_columns = [col for col in columns_to_display if col in st.session_state.df.columns]
+    available_columns = [col for col in columns_to_display if col in display_df.columns]
     
     if len(available_columns) > 0:
-        # Display the data editor
+        # Display the data editor for all accounts
         edited_df = st.data_editor(
-            st.session_state.df[available_columns],
+            display_df[available_columns],
             use_container_width=True,
             hide_index=True,
-            key="paid_media_editor"
+            key="all_accounts_editor"
         )
         
-        # Check if there are unsaved changes
-        has_changes = not edited_df.equals(st.session_state.original_df[available_columns])
+        # Check if there are unsaved changes (including pending accounts and edits)
+        has_pending = not st.session_state.pending_accounts.empty
+        has_edits = not edited_df.equals(display_df[available_columns])
+        has_changes = has_pending or has_edits
         
         # Show status message
         if has_changes:
-            st.warning("⚠️ You have unsaved changes. Click 'Save' to update BigQuery.")
-        else:
-            st.success("✅ All changes saved.")
+            if has_pending and has_edits:
+                st.warning("⚠️ You have pending accounts and unsaved edits. Click 'Save' to commit all changes to BigQuery.")
+            elif has_pending:
+                st.warning("⚠️ You have pending accounts. Click 'Save' to commit them to BigQuery.")
+            elif has_edits:
+                st.warning("⚠️ You have unsaved edits. Click 'Save' to update BigQuery.")
         
-        # Save button - only save when explicitly clicked
+        # Save and Reset buttons
         col1, col2, col3 = st.columns([1, 1, 4])
         with col1:
-            save_clicked = st.button("💾 Save", key="save_paid_media", type="primary", disabled=not has_changes)
+            save_clicked = st.button("💾 Save All", key="save_all_accounts", type="primary", disabled=not has_changes)
         
         with col2:
             # Reset/Cancel button to discard changes
-            if st.button("↶ Reset", key="reset_changes", disabled=not has_changes):
+            if st.button("↶ Reset All", key="reset_all_changes", disabled=not has_changes):
+                # Clear pending accounts and reset to original data
+                st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
                 st.rerun()
         
         # Only save to BigQuery when Save button is explicitly clicked
         if save_clicked and has_changes:
-            # Update the session state dataframe with edited data
-            for col in available_columns:
-                st.session_state.df[col] = edited_df[col]
+            # Create the final dataframe to save (original + pending + edits)
+            final_df = edited_df.copy()
             
-            with st.spinner("Saving changes to BigQuery..."):
-                if save_data_to_bigquery(st.session_state.df):
-                    # Update the original_df to match the saved state
-                    st.session_state.original_df = st.session_state.df.copy()
-                    st.success("Changes saved successfully to BigQuery!")
+            with st.spinner("Saving all changes to BigQuery..."):
+                if save_data_to_bigquery(final_df):
+                    # Update session state with the saved data
+                    st.session_state.df = final_df.copy()
+                    st.session_state.original_df = final_df.copy()
+                    # Clear pending accounts since they're now saved
+                    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+                    st.success("All changes saved successfully to BigQuery!")
                     st.rerun()
                 else:
                     st.error("Failed to save changes to BigQuery")
@@ -351,6 +386,8 @@ with tab6:
                 with st.spinner("Refreshing data..."):
                     st.session_state.df = load_data_from_bigquery()
                     st.session_state.original_df = st.session_state.df.copy()
+                    # Clear pending accounts on refresh
+                    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
                     st.success("Data refreshed!")
                     st.rerun()
             
@@ -362,6 +399,7 @@ with tab6:
                         if save_data_to_bigquery(empty_df):
                             st.session_state.df = empty_df
                             st.session_state.original_df = empty_df.copy()
+                            st.session_state.pending_accounts = empty_df.copy()
                             st.success("All data cleared!")
                             st.rerun()
                         else:
@@ -369,13 +407,17 @@ with tab6:
         
         with col2:
             st.subheader("System Info")
-            st.write(f"**Total Records:** {len(st.session_state.df)}")
+            st.write(f"**Total Records in BigQuery:** {len(st.session_state.df)}")
+            st.write(f"**Pending Accounts:** {len(st.session_state.pending_accounts)}")
             st.write(f"**Unique Clients:** {st.session_state.df['Client_Name'].nunique()}")
             st.write(f"**Data Sources:** {', '.join(st.session_state.df['Data_Source_Name'].unique())}")
             
             # Raw data view
-            if st.checkbox("Show Raw Data"):
+            if st.checkbox("Show Raw BigQuery Data"):
                 st.dataframe(st.session_state.df, use_container_width=True)
+            
+            if st.checkbox("Show Pending Accounts"):
+                st.dataframe(st.session_state.pending_accounts, use_container_width=True)
         
         # Logout from master
         st.write("---")
