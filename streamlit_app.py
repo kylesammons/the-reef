@@ -25,14 +25,7 @@ def init_bigquery_client():
         else:
             # For local development, use the JSON file
             # Make sure to set GOOGLE_APPLICATION_CREDENTIALS environment variable
-            credentials_path = os.getenv('/Users/trimark/Desktop/Jupyter_Notebooks/trimark-tdp-87c89fbd0816.json')
-            if credentials_path and os.path.exists(credentials_path):
-                credentials = service_account.Credentials.from_service_account_file(
-                    credentials_path
-                )
-            else:
-                st.error("BigQuery credentials not found. Please check your setup.")
-                return None
+            credentials = service_account.Credentials.from_service_account_file('/Users/trimark/Desktop/Jupyter_Notebooks/trimark-tdp-87c89fbd0816.json')
         
         client = bigquery.Client(credentials=credentials, project=PROJECT_ID)
         return client
@@ -48,7 +41,7 @@ def load_data_from_bigquery():
     
     try:
         query = f"""
-        SELECT Client_ID, Account_ID, Data_Source_Name, Client_Name, Campaign_ID, Campaign_Name
+        SELECT Client_ID, Account_ID, Data_Source_Name, Client_Name, CAST(Campaign_ID as STRING) as Campaign_ID, Campaign_Name
         FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
         ORDER BY Client_Name, Data_Source_Name
         """
