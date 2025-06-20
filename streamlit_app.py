@@ -3,6 +3,7 @@ import pandas as pd
 import streamlit as st
 from google.cloud import bigquery
 from google.oauth2 import service_account
+import time
 import json
 
 # Set Streamlit page config
@@ -263,8 +264,6 @@ with tab1:
     else:
         display_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
     
-    st.write(f"Paid Media Accounts: `{len(st.session_state.df)}` | Pending Accounts: `{len(st.session_state.pending_accounts)}`")
-    
     # Select only the desired columns for display
     columns_to_display = ["Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
     
@@ -279,6 +278,7 @@ with tab1:
         has_pending = not st.session_state.pending_accounts.empty
         
         # Display the data editor for all accounts
+        st.write(f"Paid Media Accounts: `{len(st.session_state.df)}` | Pending Accounts: `{len(st.session_state.pending_accounts)}`")
         edited_df = st.data_editor(
             display_df[available_columns],
             use_container_width=True,
@@ -317,6 +317,7 @@ with tab1:
                     # Show success message in the status placeholder
                     status_placeholder.success("✅ All changes saved successfully to BigQuery!")
                     # Brief delay to show success message, then rerun
+                    time.sleep(3)
                     st.rerun()
                 else:
                     status_placeholder.error("❌ Failed to save changes to BigQuery")
