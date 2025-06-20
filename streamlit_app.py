@@ -213,7 +213,6 @@ if submitted and form_valid:
     
     # Add to pending accounts
     st.session_state.pending_accounts = pd.concat([st.session_state.pending_accounts, new_account], ignore_index=True)
-    st.success("Account added to pending list! Click 'Save' to commit to BigQuery.")
 
 # Initialize master access in session state
 if "master_access" not in st.session_state:
@@ -227,7 +226,7 @@ with tab1:
     
     # Show pending accounts if any
     if not st.session_state.pending_accounts.empty:
-        st.subheader("📋 Pending Accounts (Not yet saved to BigQuery)")
+        st.write("Account submitted! Here are the details:")
         
         # Select only the desired columns for display
         columns_to_display = ["Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
@@ -249,21 +248,19 @@ with tab1:
         col1, col2, col3 = st.columns([1, 1, 4])
         
         with col1:
+            save_clicked = st.button("💾 Save All", key="save_all_accounts", type="primary")
+        with col2:
             if st.button("🗑️ Clear Pending", type="secondary"):
                 st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
                 st.rerun()
-        
-        st.write("---")  # Separator
-    
+
     # Combined dataframe for display (original + pending + edits)
     if st.session_state.pending_accounts.empty:
         display_df = st.session_state.df.copy()
     else:
         display_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
     
-    st.subheader("📊 All Accounts")
-    st.write(f"Total accounts (including pending): `{len(display_df)}`")
-    st.write(f"Saved in BigQuery: `{len(st.session_state.df)}` | Pending: `{len(st.session_state.pending_accounts)}`")
+    st.write(f"Paid Media Accounts: `{len(st.session_state.df)}` | Pending Accounts: `{len(st.session_state.pending_accounts)}`")
     
     # Select only the desired columns for display
     columns_to_display = ["Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
@@ -279,8 +276,8 @@ with tab1:
             hide_index=True,
             key="all_accounts_editor"
         )
-        
-        # Check if there are unsaved changes (including pending accounts and edits)
+    
+    # Check if there are unsaved changes (including pending accounts and edits)
         has_pending = not st.session_state.pending_accounts.empty
         has_edits = not edited_df.equals(display_df[available_columns])
         has_changes = has_pending or has_edits
@@ -293,20 +290,8 @@ with tab1:
                 st.warning("⚠️ You have pending accounts. Click 'Save' to commit them to BigQuery.")
             elif has_edits:
                 st.warning("⚠️ You have unsaved edits. Click 'Save' to update BigQuery.")
-        
-        # Save and Reset buttons
-        col1, col2, col3 = st.columns([1, 1, 4])
-        with col1:
-            save_clicked = st.button("💾 Save All", key="save_all_accounts", type="primary", disabled=not has_changes)
-        
-        with col2:
-            # Reset/Cancel button to discard changes
-            if st.button("↶ Reset All", key="reset_all_changes", disabled=not has_changes):
-                # Clear pending accounts and reset to original data
-                st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                st.rerun()
-        
-        # Only save to BigQuery when Save button is explicitly clicked
+    
+    # Only save to BigQuery when Save button is explicitly clicked
         if save_clicked and has_changes:
             # Create the final dataframe to save (original + pending + edits)
             final_df = edited_df.copy()
@@ -324,6 +309,8 @@ with tab1:
                     st.error("Failed to save changes to BigQuery")
     else:
         st.warning("No data available to display.")
+        
+        
 
 with tab2:
     st.header("GA4")
