@@ -224,6 +224,9 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Paid Media", "GA4", "Forms", "Mar
 with tab1:
     st.header("Paid Media")
     
+    # Initialize save_clicked variable
+    save_clicked = False
+    
     # Show pending accounts if any
     if not st.session_state.pending_accounts.empty:
         st.write("Account submitted! Here are the details:")
