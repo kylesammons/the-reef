@@ -120,8 +120,8 @@ if "pending_accounts" not in st.session_state:
 # Sidebar for inputs
 with st.sidebar:
     st.image("Waves-Logo_Color.svg", width=200)
+    st.markdown("<br>", unsafe_allow_html=True)
     st.header("Add an Account")
-    st.write("")  # Add spacing
     
     # Client Name (required)
     client_name_options = st.session_state.df["Client_Name"].unique()
