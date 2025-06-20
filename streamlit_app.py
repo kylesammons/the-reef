@@ -344,7 +344,7 @@ with tab5:
 with tab6:
     if not st.session_state.master_access:
         # Show password prompt
-        st.header("🔒 Master Access Required")
+        st.header("#### 🔒 Master Access Required")
         st.write("Please enter the master password to access this section.")
         st.write("")
         
