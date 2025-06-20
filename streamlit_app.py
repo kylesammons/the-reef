@@ -343,7 +343,9 @@ with tab5:
 # Master tab (always visible, but content depends on authentication)
 with tab6:
     if not st.session_state.master_access:
-        col1, col2, col3 = st.columns([1, 1, 2])
+        col1, col2, col3 = st.columns([1, 1, 1])
+        st.write("Master Password required")
+        st.markdown("<br>", unsafe_allow_html=True)
         with col1:
             master_password = st.text_input("Master Password:", type="password", key="master_pwd")
         
