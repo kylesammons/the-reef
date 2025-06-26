@@ -18,20 +18,72 @@ TABLE_ID = "paidmedia_test"      # Replace with your table name
 def init_bigquery_client():
     """Initialize BigQuery client with service account credentials"""
     try:
-        # Try to get credentials from Streamlit secrets (for deployment)
-        if hasattr(st, 'secrets') and 'gcp_service_account' in st.secrets:
-            credentials = service_account.Credentials.from_service_account_info(
-                st.secrets["gcp_service_account"]
-            )
-        else:
-            # For local development, use the JSON file
-            # Make sure to set GOOGLE_APPLICATION_CREDENTIALS environment variable
-            credentials = service_account.Credentials.from_service_account_file('/Users/trimark/Desktop/Jupyter_Notebooks/trimark-tdp-87c89fbd0816.json')
+        credentials = None
+        
+        # Method 1: Try Streamlit secrets (for deployment)
+        try:
+            if hasattr(st, 'secrets') and 'gcp_service_account' in st.secrets:
+                credentials = service_account.Credentials.from_service_account_info(
+                    st.secrets["gcp_service_account"]
+                )
+                st.success("Using Streamlit secrets for BigQuery authentication")
+        except Exception as e:
+            pass  # Continue to next method
+        
+        # Method 2: Try environment variable (recommended for local)
+        if not credentials:
+            try:
+                credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+                if credentials_path and os.path.exists(credentials_path):
+                    credentials = service_account.Credentials.from_service_account_file(credentials_path)
+                    st.success(f"Using environment variable credentials: {credentials_path}")
+            except Exception as e:
+                pass  # Continue to next method
+        
+        # Method 3: Try hardcoded path (fallback for local development)
+        if not credentials:
+            try:
+                hardcoded_path = '/Users/trimark/Desktop/Jupyter_Notebooks/trimark-tdp-87c89fbd0816.json'
+                if os.path.exists(hardcoded_path):
+                    credentials = service_account.Credentials.from_service_account_file(hardcoded_path)
+            except Exception as e:
+                pass  # Continue to next method
+        
+        # Method 4: Try default credentials (for Google Cloud environments)
+        if not credentials:
+            try:
+                credentials, project = service_account.default()
+                st.info("Using default Google Cloud credentials")
+            except Exception as e:
+                pass
+        
+        if not credentials:
+            raise Exception("No valid credentials found. Please check your setup.")
         
         client = bigquery.Client(credentials=credentials, project=PROJECT_ID)
+        
+        # Test the connection
+        try:
+            # Simple query to test connection
+            test_query = f"SELECT 1 as test_connection LIMIT 1"
+            client.query(test_query).result()
+        except Exception as e:
+            st.warning(f"BigQuery connection test failed: {str(e)}")
+        
         return client
+        
     except Exception as e:
         st.error(f"Error initializing BigQuery client: {str(e)}")
+        st.error("Please ensure you have set up authentication properly:")
+        st.code("""
+        For local development, set environment variable:
+        export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/credentials.json"
+        
+        Or place your credentials file at:
+        /Users/trimark/Desktop/Jupyter_Notebooks/trimark-tdp-87c89fbd0816.json
+        
+        For deployment, add your service account key to Streamlit secrets.
+        """)
         return None
 
 def load_data_from_bigquery():
@@ -96,11 +148,29 @@ def save_data_to_bigquery(df):
         st.error(f"Error saving data to BigQuery: {str(e)}")
         return False
 
+@st.dialog("Delete Confirmation")
+def delete_confirmation_dialog(selected_count):
+    """Show delete confirmation dialog"""
+    st.warning(f"⚠️ **Are you sure you want to delete {selected_count} row(s)?**")
+    st.write("This action cannot be undone.")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("Delete", key="modal_confirm_delete", type="primary", use_container_width=True):
+            st.session_state.confirm_deletion = True
+            st.rerun()
+    
+    with col2:
+        if st.button("Cancel", key="modal_cancel_delete", use_container_width=True):
+            st.session_state.show_delete_confirmation = False
+            st.rerun()
+
 # App title
-st.title(":ocean: The Reef")
+st.title("The Reef")
 st.info(
-    "You can edit the accounts by double-clicking on a cell. Note how the rows below "
-    "update automatically! You can also sort the table by clicking on the column headers.",
+    "Add Accounts by entering required inputs in the sidebar. You can edit or delete the accounts by selecting Update in the table and following the prompts. "
+    "Note how the action buttons appear when you make changes!",
     icon="✍️"
 )
 
@@ -116,6 +186,14 @@ if "original_df" not in st.session_state:
 # Initialize pending accounts dataframe
 if "pending_accounts" not in st.session_state:
     st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+
+# Initialize delete confirmation state
+if "show_delete_confirmation" not in st.session_state:
+    st.session_state.show_delete_confirmation = False
+
+# Initialize deletion confirmation state
+if "confirm_deletion" not in st.session_state:
+    st.session_state.confirm_deletion = False
 
 # Sidebar for inputs
 with st.sidebar:
@@ -225,9 +303,6 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Paid Media", "GA4", "Forms", "Mar
 with tab1:
     st.header("Paid Media")
     
-    # Initialize save_clicked variable
-    save_clicked = False
-    
     # Show pending accounts if any
     if not st.session_state.pending_accounts.empty:
         st.write("Account submitted! Here are the details:")
@@ -252,7 +327,23 @@ with tab1:
         col1, col2, col3 = st.columns([1, 1, 4])
         
         with col1:
-            save_clicked = st.button("💾 Save All", key="save_all_accounts", type="primary")
+            if st.button("💾 Save All", key="save_all_accounts", type="primary"):
+                # Create the final dataframe to save (original + pending)
+                final_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
+                
+                with st.spinner("Saving all changes to BigQuery..."):
+                    if save_data_to_bigquery(final_df):
+                        # Update session state with the saved data
+                        st.session_state.df = final_df.copy()
+                        st.session_state.original_df = final_df.copy()
+                        # Clear pending accounts since they're now saved
+                        st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+                        st.toast("All accounts saved successfully to BigQuery!", icon="✅")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to save changes to BigQuery")
+        
         with col2:
             if st.button("🗑️ Clear Pending", type="secondary"):
                 st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
@@ -264,7 +355,7 @@ with tab1:
     else:
         display_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
     
-    # Select only the desired columns for display
+    # Select only the desired columns for display and add checkbox column
     columns_to_display = ["Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
     
     # Check if dataframe has the required columns
@@ -274,53 +365,186 @@ with tab1:
         # Create a placeholder for the status message above the data editor
         status_placeholder = st.empty()
         
-        # Check if there are pending accounts (we can check this before data editor)
+        # Check if there are pending accounts
         has_pending = not st.session_state.pending_accounts.empty
         
-        # Display the data editor for all accounts
+        # Add checkbox column for update selection
+        display_df_with_checkbox = display_df[available_columns].copy()
+        display_df_with_checkbox["Update"] = False  # Add checkbox column
+        
+        # Display the data editor for all accounts (read-only)
         st.write(f"Paid Media Accounts: `{len(st.session_state.df)}` | Pending Accounts: `{len(st.session_state.pending_accounts)}`")
+        
+        # Create the data editor with only Update column editable
         edited_df = st.data_editor(
-            display_df[available_columns],
+            display_df_with_checkbox,
             use_container_width=True,
             hide_index=True,
-            key="all_accounts_editor"
+            key="all_accounts_editor",
+            disabled=available_columns,  # Disable all columns except Update
+            column_config={
+                "Update": st.column_config.CheckboxColumn(
+                    "Update",
+                    help="Check to edit this row",
+                    default=False,
+                    width="small"
+                )
+            }
         )
         
-        # Check for edits after data_editor is created
-        has_edits = not edited_df.equals(display_df[available_columns])
-        has_changes = has_pending or has_edits
+        # Get selected rows for editing
+        selected_rows = edited_df[edited_df["Update"] == True]
+        selected_for_update = len(selected_rows) > 0
         
-        # Show status message in the placeholder above the data editor
-        if has_changes:
-            if has_pending and has_edits:
-                status_placeholder.warning("⚠️ You have pending accounts and unsaved edits. Click 'Save' to commit all changes to BigQuery.")
-            elif has_pending:
-                status_placeholder.warning("⚠️ You have pending accounts. Click 'Save' to commit them to BigQuery.")
-            elif has_edits:
-                status_placeholder.warning("⚠️ You have unsaved edits. Click 'Save' to update BigQuery.")
+        # Show toast for row selection changes
+        if selected_for_update:
+            if "last_selected_count" not in st.session_state:
+                st.session_state.last_selected_count = 0
+            
+            current_count = len(selected_rows)
+            if current_count != st.session_state.last_selected_count:
+                if current_count > 0:
+                    st.toast(f"{current_count} row(s) selected for editing", icon="📝")
+                st.session_state.last_selected_count = current_count
         else:
-            # Clear the status message if no changes
+            if "last_selected_count" in st.session_state and st.session_state.last_selected_count > 0:
+                st.session_state.last_selected_count = 0
+        
+        # Show status message
+        if has_pending:
+            status_placeholder.warning("⚠️ You have pending accounts.")
+        else:
             status_placeholder.empty()
         
-        # Only save to BigQuery when Save button is explicitly clicked
-        if save_clicked and has_changes:
-            # Create the final dataframe to save (original + pending + edits)
-            final_df = edited_df.copy()
+        # Show editable section for selected rows
+        if selected_for_update:
+            st.markdown("---")
+            st.subheader("Edit Selected Rows")
             
-            with st.spinner("Saving all changes to BigQuery..."):
-                if save_data_to_bigquery(final_df):
-                    # Update session state with the saved data
-                    st.session_state.df = final_df.copy()
-                    st.session_state.original_df = final_df.copy()
-                    # Clear pending accounts since they're now saved
-                    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                    # Show success message in the status placeholder
-                    status_placeholder.success("✅ All changes saved successfully to BigQuery!")
-                    # Brief delay to show success message, then rerun
-                    time.sleep(3)
-                    st.rerun()
+            # Create editable dataframe from selected rows (without Update column)
+            editable_rows = selected_rows.drop(columns=["Update"]).copy()
+            
+            # Display editable dataframe
+            edited_selected = st.data_editor(
+                editable_rows,
+                use_container_width=True,
+                hide_index=True,
+                key="editable_selected_rows",
+                num_rows="fixed"
+            )
+            
+            # Action buttons for selected rows
+            col1, col2, col3 = st.columns([1, 1, 4])
+            
+            with col1:
+                if st.button("💾 Save All", key="save_selected_rows_btn", type="primary"):
+                    # Update the main dataframe with edited values
+                    selected_indices = edited_df[edited_df["Update"] == True].index
+                    
+                    # Update the display dataframe with edited values
+                    for i, idx in enumerate(selected_indices):
+                        for col in available_columns:
+                            display_df.loc[idx, col] = edited_selected.iloc[i][col]
+                    
+                    # Determine which part is original vs pending
+                    original_count = len(st.session_state.df)
+                    
+                    # Update session state
+                    if len(display_df) > 0:
+                        if original_count > 0:
+                            st.session_state.df = display_df.iloc[:original_count].copy()
+                        if len(display_df) > original_count:
+                            st.session_state.pending_accounts = display_df.iloc[original_count:].copy()
+                    
+                    # Save to BigQuery
+                    with st.spinner("Saving changes to BigQuery..."):
+                        if save_data_to_bigquery(display_df):
+                            st.session_state.df = display_df.copy()
+                            st.session_state.original_df = display_df.copy()
+                            st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+                            st.toast("✅ Changes saved successfully to BigQuery!", icon="✅")
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to save changes to BigQuery")
+            
+            with col2:
+                if st.button("🗑️ Delete", key="delete_selected_btn", type="secondary"):
+                    # Show popup confirmation dialog
+                    st.session_state.show_delete_confirmation = True
+                    st.session_state.confirm_deletion = False
+            
+            # Show the delete confirmation popup if requested
+            if st.session_state.get("show_delete_confirmation", False):
+                selected_count = len(selected_rows)
+                delete_confirmation_dialog(selected_count)
+            
+            # Handle confirmed deletion
+            if st.session_state.get("confirm_deletion", False):
+                # Get indices of selected rows
+                selected_indices = edited_df[edited_df["Update"] == True].index
+                
+                # Remove selected rows
+                remaining_rows = display_df.drop(selected_indices).reset_index(drop=True)
+                
+                # Update session state
+                original_count = len(st.session_state.df)
+                
+                if len(remaining_rows) > 0:
+                    if original_count > 0:
+                        st.session_state.df = remaining_rows.iloc[:min(len(remaining_rows), original_count)].copy()
+                    if len(remaining_rows) > original_count:
+                        st.session_state.pending_accounts = remaining_rows.iloc[original_count:].copy()
+                    else:
+                        st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
                 else:
-                    status_placeholder.error("❌ Failed to save changes to BigQuery")
+                    st.session_state.df = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+                    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+                
+                # Save to BigQuery
+                final_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
+                
+                with st.spinner("Deleting rows from BigQuery..."):
+                    if save_data_to_bigquery(final_df):
+                        st.session_state.original_df = final_df.copy()
+                        st.toast(f"🗑️ {len(selected_indices)} row(s) deleted successfully!", icon="🗑️")
+                        # Reset confirmation states
+                        st.session_state.show_delete_confirmation = False
+                        st.session_state.confirm_deletion = False
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to delete rows from BigQuery")
+                        # Reset confirmation states
+                        st.session_state.show_delete_confirmation = False
+                        st.session_state.confirm_deletion = False
+        
+        # Action buttons for pending accounts (only show if no rows selected for update)
+        elif has_pending:
+            st.markdown("---")
+            col1, col2, col3 = st.columns([1, 1, 4])
+            
+            with col1:
+                if st.button("💾 Save All", key="save_pending_accounts_btn", type="primary"):
+                    # Save pending accounts
+                    final_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
+                    
+                    with st.spinner("Saving all changes to BigQuery..."):
+                        if save_data_to_bigquery(final_df):
+                            st.session_state.df = final_df.copy()
+                            st.session_state.original_df = final_df.copy()
+                            st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+                            st.toast("✅ All pending accounts saved successfully!", icon="✅")
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to save changes to BigQuery")
+            
+            with col2:
+                if st.button("🗑️ Clear Pending", key="clear_pending_accounts_btn", type="secondary"):
+                    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+                    st.toast("🧹 Pending accounts cleared", icon="🧹")
+                    st.rerun()
     else:
         st.warning("No data available to display.")
         
