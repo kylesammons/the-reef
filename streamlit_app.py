@@ -5,7 +5,6 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 import time
 from datetime import date, timedelta
-import pydeck as pdk
 
 # Set Streamlit page config
 st.set_page_config(page_title="Leads Manager", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
@@ -55,42 +54,6 @@ def init_bigquery_client():
     except Exception as e:
         st.error(f"Error initializing BigQuery client: {str(e)}")
         return None
-
-@st.cache_data(ttl=3600)
-def get_zipcode_boundaries(zipcodes):
-    """Get zipcode boundaries as polygons from BigQuery public dataset"""
-    if not zipcodes or len(zipcodes) == 0:
-        return pd.DataFrame()
-    
-    client = init_bigquery_client()
-    if not client:
-        return pd.DataFrame()
-    
-    try:
-        # Convert zipcodes to strings and clean them
-        zip_list = [str(z).strip()[:5] for z in zipcodes if z and str(z).strip()]
-        
-        if not zip_list:
-            return pd.DataFrame()
-        
-        # Use BigQuery public zipcode dataset with geometry
-        zip_string = "', '".join(zip_list)
-        query = f"""
-        SELECT 
-            zipcode,
-            city,
-            state_code,
-            ST_AsGeoJSON(zip_code_geom) as geometry
-        FROM `bigquery-public-data.geo_us_boundaries.zip_codes`
-        WHERE zip_code IN ('{zip_string}')
-        """
-        
-        df = client.query(query).to_dataframe()
-        return df
-        
-    except Exception as e:
-        st.warning(f"Could not fetch zipcode boundaries: {str(e)}")
-        return pd.DataFrame()
 
 @st.cache_data(ttl=300)
 def load_client_credentials():
@@ -474,140 +437,6 @@ def display_scorecards(metrics):
         </div>
         """, unsafe_allow_html=True)
 
-def create_zipcode_heatmap(form_df, call_df):
-    """Create a choropleth map visualization of leads by zipcode with actual boundaries"""
-    import json
-    
-    # Combine both dataframes
-    combined_df = pd.concat([form_df, call_df], ignore_index=True) if not form_df.empty or not call_df.empty else pd.DataFrame()
-    
-    if combined_df.empty:
-        st.info("No data available to display on the map.")
-        return
-    
-    # Find zipcode column (might be named differently)
-    zip_columns = [col for col in combined_df.columns if 'zip' in col.lower()]
-    
-    if not zip_columns:
-        st.warning("No zipcode column found in the data.")
-        return
-    
-    zip_col = zip_columns[0]
-    
-    # Clean and aggregate zipcode data
-    zip_counts = combined_df[zip_col].dropna().astype(str).str[:5].value_counts().reset_index()
-    zip_counts.columns = ['zipcode', 'lead_count']
-    
-    if zip_counts.empty:
-        st.info("No valid zipcode data available.")
-        return
-    
-    # Get boundaries for zipcodes
-    with st.spinner("Loading zipcode boundaries..."):
-        zip_boundaries = get_zipcode_boundaries(zip_counts['zipcode'].tolist())
-    
-    if zip_boundaries.empty:
-        st.warning("Could not retrieve geographic boundaries for zipcodes.")
-        return
-    
-    # Merge counts with boundaries
-    map_data = zip_boundaries.merge(zip_counts, on='zipcode', how='inner')
-    
-    if map_data.empty:
-        st.info("No matching geographic data found for your zipcodes.")
-        return
-    
-    # Parse GeoJSON and extract coordinates for centering
-    def get_centroid(geojson_str):
-        try:
-            geom = json.loads(geojson_str)
-            if geom['type'] == 'Polygon':
-                coords = geom['coordinates'][0]
-            elif geom['type'] == 'MultiPolygon':
-                coords = geom['coordinates'][0][0]
-            else:
-                return None, None
-            
-            lons = [c[0] for c in coords]
-            lats = [c[1] for c in coords]
-            return sum(lats)/len(lats), sum(lons)/len(lons)
-        except:
-            return None, None
-    
-    centroids = map_data['geometry'].apply(get_centroid)
-    map_data['center_lat'] = centroids.apply(lambda x: x[0])
-    map_data['center_lon'] = centroids.apply(lambda x: x[1])
-    
-    # Calculate center point for map
-    center_lat = map_data['center_lat'].mean()
-    center_lon = map_data['center_lon'].mean()
-    
-    # Normalize lead counts for color scaling (0-255 range)
-    max_leads = map_data['lead_count'].max()
-    min_leads = map_data['lead_count'].min()
-    
-    # Create color gradient from light blue to dark blue based on lead count
-    def get_color(lead_count):
-        # Normalize to 0-1 range
-        normalized = (lead_count - min_leads) / (max_leads - min_leads) if max_leads > min_leads else 0.5
-        # Create gradient from light blue (173, 216, 230) to dark blue (0, 71, 171)
-        r = int(173 * (1 - normalized) + 0 * normalized)
-        g = int(216 * (1 - normalized) + 71 * normalized)
-        b = int(230 * (1 - normalized) + 171 * normalized)
-        return [r, g, b, 160]
-    
-    map_data['fill_color'] = map_data['lead_count'].apply(get_color)
-    
-    # Parse geometry for GeoJsonLayer
-    map_data['geometry_parsed'] = map_data['geometry'].apply(lambda x: json.loads(x))
-    
-    # Create GeoJSON layer with actual zipcode boundaries
-    geojson_layer = pdk.Layer(
-        'GeoJsonLayer',
-        data=map_data,
-        opacity=0.6,
-        stroked=True,
-        filled=True,
-        extruded=False,
-        wireframe=False,
-        get_fill_color='fill_color',
-        get_line_color=[100, 100, 100],
-        get_line_width=2,
-        line_width_min_pixels=1,
-        pickable=True,
-        auto_highlight=True
-    )
-    
-    # Set the viewport location with light map style
-    view_state = pdk.ViewState(
-        latitude=center_lat,
-        longitude=center_lon,
-        zoom=9,
-        pitch=0
-    )
-    
-    # Render the map with light style
-    r = pdk.Deck(
-        map_style='mapbox://styles/mapbox/light-v10',
-        layers=[geojson_layer],
-        initial_view_state=view_state,
-        tooltip={
-            'html': '<b>Zipcode:</b> {zipcode}<br/><b>City:</b> {city}<br/><b>Leads:</b> {lead_count}',
-            'style': {
-                'backgroundColor': 'white',
-                'color': 'black',
-                'border': '1px solid #ccc'
-            }
-        }
-    )
-    
-    st.pydeck_chart(r)
-    
-    # Display top zipcodes table
-    st.subheader("Top 10 Zipcodes by Lead Volume")
-    top_zips = map_data.nlargest(10, 'lead_count')[['zipcode', 'city', 'state_code', 'lead_count']]
-    st.dataframe(top_zips, use_container_width=True, hide_index=True)
-
 # Initialize session state
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -738,7 +567,7 @@ display_scorecards(metrics)
 st.markdown("<br>", unsafe_allow_html=True)
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["Form Leads", "Call Leads", "📍 Geographic Heatmap"])
+tab1, tab2 = st.tabs(["Form Leads", "Call Leads"])
 
 with tab1:
     st.header("Form Leads")
@@ -865,9 +694,3 @@ with tab2:
                         st.error("❌ Failed to save changes")
     else:
         st.info("No call leads data available for the selected date range.")
-
-with tab3:
-    st.header("Geographic Distribution of Leads")
-    st.markdown("This heatmap shows where your leads are coming from based on their zip codes.")
-    
-    create_zipcode_heatmap(st.session_state.form_leads_df, st.session_state.call_leads_df)
