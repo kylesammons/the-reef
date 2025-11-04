@@ -5,6 +5,7 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 import time
 from datetime import date, timedelta
+import pydeck as pdk
 
 # Set Streamlit page config
 st.set_page_config(page_title="Leads Manager", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
@@ -54,6 +55,43 @@ def init_bigquery_client():
     except Exception as e:
         st.error(f"Error initializing BigQuery client: {str(e)}")
         return None
+
+@st.cache_data(ttl=3600)
+def get_zipcode_coordinates(zipcodes):
+    """Get lat/lon coordinates for zipcodes using BigQuery public dataset"""
+    if not zipcodes or len(zipcodes) == 0:
+        return pd.DataFrame()
+    
+    client = init_bigquery_client()
+    if not client:
+        return pd.DataFrame()
+    
+    try:
+        # Convert zipcodes to strings and clean them
+        zip_list = [str(z).strip()[:5] for z in zipcodes if z and str(z).strip()]
+        
+        if not zip_list:
+            return pd.DataFrame()
+        
+        # Use BigQuery public zipcode dataset
+        zip_string = "', '".join(zip_list)
+        query = f"""
+        SELECT 
+            zipcode,
+            city,
+            state_code,
+            latitude as lat,
+            longitude as lon
+        FROM `bigquery-public-data.utility_us.zipcode_area`
+        WHERE zipcode IN ('{zip_string}')
+        """
+        
+        df = client.query(query).to_dataframe()
+        return df
+        
+    except Exception as e:
+        st.warning(f"Could not fetch zipcode coordinates: {str(e)}")
+        return pd.DataFrame()
 
 @st.cache_data(ttl=300)
 def load_client_credentials():
@@ -437,6 +475,101 @@ def display_scorecards(metrics):
         </div>
         """, unsafe_allow_html=True)
 
+def create_zipcode_heatmap(form_df, call_df):
+    """Create a heatmap visualization of leads by zipcode"""
+    # Combine both dataframes
+    combined_df = pd.concat([form_df, call_df], ignore_index=True) if not form_df.empty or not call_df.empty else pd.DataFrame()
+    
+    if combined_df.empty:
+        st.info("No data available to display on the map.")
+        return
+    
+    # Find zipcode column (might be named differently)
+    zip_columns = [col for col in combined_df.columns if 'zip' in col.lower()]
+    
+    if not zip_columns:
+        st.warning("No zipcode column found in the data.")
+        return
+    
+    zip_col = zip_columns[0]
+    
+    # Clean and aggregate zipcode data
+    zip_counts = combined_df[zip_col].dropna().astype(str).str[:5].value_counts().reset_index()
+    zip_counts.columns = ['zipcode', 'lead_count']
+    
+    if zip_counts.empty:
+        st.info("No valid zipcode data available.")
+        return
+    
+    # Get coordinates for zipcodes
+    with st.spinner("Loading zipcode coordinates..."):
+        zip_coords = get_zipcode_coordinates(zip_counts['zipcode'].tolist())
+    
+    if zip_coords.empty:
+        st.warning("Could not retrieve geographic coordinates for zipcodes.")
+        return
+    
+    # Merge counts with coordinates
+    map_data = zip_coords.merge(zip_counts, on='zipcode', how='inner')
+    
+    if map_data.empty:
+        st.info("No matching geographic data found for your zipcodes.")
+        return
+    
+    # Calculate center point for map
+    center_lat = map_data['lat'].mean()
+    center_lon = map_data['lon'].mean()
+    
+    # Create the pydeck layer
+    layer = pdk.Layer(
+        'HeatmapLayer',
+        data=map_data,
+        get_position=['lon', 'lat'],
+        get_weight='lead_count',
+        radiusPixels=60,
+        intensity=1,
+        threshold=0.05,
+        aggregation=pdk.types.String('SUM')
+    )
+    
+    # Create scatter layer for individual points with tooltips
+    scatter_layer = pdk.Layer(
+        'ScatterplotLayer',
+        data=map_data,
+        get_position=['lon', 'lat'],
+        get_radius='lead_count * 200',
+        get_fill_color=[255, 140, 0, 140],
+        pickable=True,
+    )
+    
+    # Set the viewport location
+    view_state = pdk.ViewState(
+        latitude=center_lat,
+        longitude=center_lon,
+        zoom=8,
+        pitch=0
+    )
+    
+    # Render the map
+    r = pdk.Deck(
+        layers=[layer, scatter_layer],
+        initial_view_state=view_state,
+        tooltip={
+            'html': '<b>Zipcode:</b> {zipcode}<br/><b>City:</b> {city}<br/><b>Leads:</b> {lead_count}',
+            'style': {
+                'backgroundColor': 'steelblue',
+                'color': 'white'
+            }
+        }
+    )
+    
+    st.pydeck_chart(r)
+    
+    # Display top zipcodes table
+    st.subheader("Top 10 Zipcodes by Lead Volume")
+    top_zips = map_data.nlargest(10, 'lead_count')[['zipcode', 'city', 'state_code', 'lead_count']]
+    st.dataframe(top_zips, use_container_width=True, hide_index=True)
+
 # Initialize session state
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -567,7 +700,7 @@ display_scorecards(metrics)
 st.markdown("<br>", unsafe_allow_html=True)
 
 # Tabs
-tab1, tab2 = st.tabs(["Form Leads", "Call Leads"])
+tab1, tab2, tab3 = st.tabs(["Form Leads", "Call Leads", "📍 Geographic Heatmap"])
 
 with tab1:
     st.header("Form Leads")
@@ -694,3 +827,9 @@ with tab2:
                         st.error("❌ Failed to save changes")
     else:
         st.info("No call leads data available for the selected date range.")
+
+with tab3:
+    st.header("Geographic Distribution of Leads")
+    st.markdown("This heatmap shows where your leads are coming from based on their zip codes.")
+    
+    create_zipcode_heatmap(st.session_state.form_leads_df, st.session_state.call_leads_df)
