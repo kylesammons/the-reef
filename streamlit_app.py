@@ -202,7 +202,7 @@ def load_leads_data(table_name, client_id, date_range_type, start_date=None, end
             client_id_filter = f"Client_ID = '{client_id}'"
         
         query = f"""
-        SELECT *
+        SELECT * EXCEPT(year_to_date, month_to_date, quarter_to_date, Client_ID, Client_Name)
         FROM `{PROJECT_ID}.master.{table_name}`
         WHERE {client_id_filter}
         {date_filter}
@@ -292,7 +292,7 @@ def save_leads_data(df, table_name, client_id, date_range_type, start_date=None,
             # Create a new table with all data except the filtered rows
             merge_query = f"""
             CREATE OR REPLACE TABLE `{table_ref}` AS
-            SELECT * FROM `{table_ref}`
+            SELECT *  FROM `{table_ref}`
             WHERE NOT (Client_ID = {client_id} AND {date_filter})
             UNION ALL
             SELECT * FROM `{temp_table}`
