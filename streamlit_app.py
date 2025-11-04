@@ -564,6 +564,8 @@ with st.spinner("Loading leads data..."):
 metrics = calculate_scorecard_metrics(st.session_state.form_leads_df, st.session_state.call_leads_df)
 display_scorecards(metrics)
 
+st.markdown("<br>", unsafe_allow_html=True)
+
 # Tabs
 tab1, tab2 = st.tabs(["Form Leads", "Call Leads"])
 
