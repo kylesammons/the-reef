@@ -4,15 +4,13 @@ import streamlit as st
 from google.cloud import bigquery
 from google.oauth2 import service_account
 import time
-import json
+from datetime import date, timedelta
 
 # Set Streamlit page config
-st.set_page_config(page_title="The Reef", page_icon=":ocean:", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Leads Manager", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 
 # BigQuery configuration
-PROJECT_ID = "trimark-tdp"  # Replace with your actual project ID
-DATASET_ID = "reference"     # Replace with your dataset name
-TABLE_ID = "paidmedia_test"      # Replace with your table name
+PROJECT_ID = "trimark-tdp"
 
 @st.cache_resource
 def init_bigquery_client():
@@ -27,7 +25,7 @@ def init_bigquery_client():
                     st.secrets["gcp_service_account"]
                 )
         except Exception as e:
-            pass  # Continue to next method
+            pass
         
         # Method 2: Try environment variable (recommended for local)
         if not credentials:
@@ -35,9 +33,8 @@ def init_bigquery_client():
                 credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
                 if credentials_path and os.path.exists(credentials_path):
                     credentials = service_account.Credentials.from_service_account_file(credentials_path)
-                    st.success(f"Using environment variable credentials: {credentials_path}")
             except Exception as e:
-                pass  # Continue to next method
+                pass
         
         # Method 3: Try hardcoded path (fallback for local development)
         if not credentials:
@@ -46,601 +43,646 @@ def init_bigquery_client():
                 if os.path.exists(hardcoded_path):
                     credentials = service_account.Credentials.from_service_account_file(hardcoded_path)
             except Exception as e:
-                pass  # Continue to next method
-        
-        # Method 4: Try default credentials (for Google Cloud environments)
-        if not credentials:
-            try:
-                credentials, project = service_account.default()
-                st.info("Using default Google Cloud credentials")
-            except Exception as e:
                 pass
         
         if not credentials:
             raise Exception("No valid credentials found. Please check your setup.")
         
         client = bigquery.Client(credentials=credentials, project=PROJECT_ID)
-        
-        # Test the connection
-        try:
-            # Simple query to test connection
-            test_query = f"SELECT 1 as test_connection LIMIT 1"
-            client.query(test_query).result()
-        except Exception as e:
-            st.warning(f"BigQuery connection test failed: {str(e)}")
-        
         return client
         
     except Exception as e:
         st.error(f"Error initializing BigQuery client: {str(e)}")
-        st.error("Please ensure you have set up authentication properly:")
-        st.code("""
-        For local development, set environment variable:
-        export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/credentials.json"
-        
-        Or place your credentials file at:
-        /Users/trimark/Desktop/Jupyter_Notebooks/trimark-tdp-87c89fbd0816.json
-        
-        For deployment, add your service account key to Streamlit secrets.
-        """)
         return None
 
-def load_data_from_bigquery():
-    """Load data from BigQuery table"""
+@st.cache_data(ttl=300)
+def load_client_credentials():
+    """Load client credentials from CSV file"""
+    try:
+        # Try to load from the same directory as the script
+        csv_path = "The Reef - Clients.csv"
+        
+        if not os.path.exists(csv_path):
+            st.error(f"Client credentials file not found: {csv_path}")
+            st.info("Please ensure 'The Reef - Clients.csv' is in the same directory as this app.")
+            return pd.DataFrame()
+        
+        df = pd.read_csv(csv_path)
+        
+        # Ensure required columns exist
+        if 'Client_Name' not in df.columns or 'Client_ID' not in df.columns:
+            st.error("CSV file must contain 'Client_Name' and 'Client_ID' columns")
+            return pd.DataFrame()
+        
+        return df
+        
+    except Exception as e:
+        st.error(f"Error loading client credentials: {str(e)}")
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300)
+def verify_login(username, password):
+    """Verify login credentials against CSV file"""
+    try:
+        # Load client credentials from CSV
+        clients_df = load_client_credentials()
+        
+        if clients_df.empty:
+            return None, None
+        
+        # Normalize username (lowercase and trim spaces)
+        username_normalized = username.lower().strip().replace(" ", "")
+        
+        # Normalize Client_Name in dataframe for comparison
+        clients_df['normalized_name'] = clients_df['Client_Name'].str.lower().str.strip().str.replace(" ", "")
+        
+        # Convert Client_ID to string for comparison
+        clients_df['Client_ID'] = clients_df['Client_ID'].astype(str)
+        
+        # Find matching client
+        match = clients_df[
+            (clients_df['normalized_name'] == username_normalized) & 
+            (clients_df['Client_ID'] == password)
+        ]
+        
+        if len(match) > 0:
+            return match.iloc[0]['Client_Name'], match.iloc[0]['Client_ID']
+        else:
+            return None, None
+            
+    except Exception as e:
+        st.error(f"Error verifying login: {str(e)}")
+        return None, None
+
+def ensure_editable_columns_exist(table_name):
+    """Ensure Lead_Status, Revenue, and Notes columns exist in the table"""
     client = init_bigquery_client()
     if not client:
-        return pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+        return False
     
     try:
+        table_ref = f"{PROJECT_ID}.master.{table_name}"
+        table = client.get_table(table_ref)
+        
+        # Check existing columns
+        existing_columns = [field.name for field in table.schema]
+        
+        # Add Lead_Status column if it doesn't exist
+        if 'Lead_Status' not in existing_columns:
+            try:
+                # Step 1: Add column
+                client.query(f"ALTER TABLE `{table_ref}` ADD COLUMN Lead_Status STRING").result()
+                # Step 2: Set default
+                client.query(f"ALTER TABLE `{table_ref}` ALTER COLUMN Lead_Status SET DEFAULT 'Pending'").result()
+                # Step 3: Update existing rows
+                client.query(f"UPDATE `{table_ref}` SET Lead_Status = 'Pending' WHERE Lead_Status IS NULL").result()
+                st.success(f"✅ Added Lead_Status column to {table_name}")
+            except Exception as e:
+                st.warning(f"Could not add Lead_Status column: {str(e)}")
+        
+        # Add Revenue column if it doesn't exist
+        if 'Revenue' not in existing_columns:
+            try:
+                # Step 1: Add column
+                client.query(f"ALTER TABLE `{table_ref}` ADD COLUMN Revenue FLOAT64").result()
+                # Step 2: Set default
+                client.query(f"ALTER TABLE `{table_ref}` ALTER COLUMN Revenue SET DEFAULT 0.0").result()
+                # Step 3: Update existing rows
+                client.query(f"UPDATE `{table_ref}` SET Revenue = 0.0 WHERE Revenue IS NULL").result()
+                st.success(f"✅ Added Revenue column to {table_name}")
+            except Exception as e:
+                st.warning(f"Could not add Revenue column: {str(e)}")
+        
+        # Add Notes column if it doesn't exist
+        if 'Notes' not in existing_columns:
+            try:
+                # Step 1: Add column
+                client.query(f"ALTER TABLE `{table_ref}` ADD COLUMN Notes STRING").result()
+                # Step 2: Set default
+                client.query(f"ALTER TABLE `{table_ref}` ALTER COLUMN Notes SET DEFAULT ''").result()
+                # Step 3: Update existing rows
+                client.query(f"UPDATE `{table_ref}` SET Notes = '' WHERE Notes IS NULL").result()
+                st.success(f"✅ Added Notes column to {table_name}")
+            except Exception as e:
+                st.warning(f"Could not add Notes column: {str(e)}")
+        
+        return True
+        
+    except Exception as e:
+        st.warning(f"Note: Could not modify table schema: {str(e)}")
+        return False
+
+def load_leads_data(table_name, client_id, date_range_type, start_date=None, end_date=None):
+    """Load leads data from BigQuery table with date filtering"""
+    client = init_bigquery_client()
+    if not client:
+        return pd.DataFrame()
+    
+    try:
+        # Build date filter based on selection
+        if date_range_type == "custom" and start_date and end_date:
+            date_filter = f"AND date BETWEEN '{start_date}' AND '{end_date}'"
+        elif date_range_type == "month_to_date":
+            date_filter = "AND month_to_date = TRUE"
+        elif date_range_type == "year_to_date":
+            date_filter = "AND year_to_date = TRUE"
+        elif date_range_type == "quarter_to_date":
+            date_filter = "AND quarter_to_date = TRUE"
+        else:
+            date_filter = "AND month_to_date = TRUE"  # Default
+        
         query = f"""
-        SELECT 
-            Client_ID, 
-            Account_ID, 
-            Data_Source_Name, 
-            Client_Name, 
-            CAST(Campaign_ID AS STRING) as Campaign_ID,
-            Campaign_Name
-        FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}`
-        ORDER BY Client_Name, Data_Source_Name
+        SELECT *
+        FROM `{PROJECT_ID}.master.{table_name}`
+        WHERE Client_ID = {client_id}
+        {date_filter}
+        ORDER BY date DESC
         """
         
         df = client.query(query).to_dataframe()
         
-        # Ensure all columns are strings and handle nulls
-        df = df.fillna('')  # Replace NaN with empty strings
-        # Convert Campaign_ID column specifically to handle nulls properly
-        df['Campaign_ID'] = df['Campaign_ID'].astype(str).replace('None', '')
-        df = df.astype(str)  # Convert all columns to string type
+        # Ensure editable columns exist with proper defaults
+        if 'Lead_Status' not in df.columns:
+            df['Lead_Status'] = 'Pending'
+        else:
+            df['Lead_Status'] = df['Lead_Status'].fillna('Pending')
+            
+        if 'Revenue' not in df.columns:
+            df['Revenue'] = 0.0
+        else:
+            df['Revenue'] = df['Revenue'].fillna(0.0)
+            
+        if 'Notes' not in df.columns:
+            df['Notes'] = ''
+        else:
+            df['Notes'] = df['Notes'].fillna('')
         
         return df
+        
     except Exception as e:
-        st.error(f"Error loading data from BigQuery: {str(e)}")
-        return pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+        st.error(f"Error loading data: {str(e)}")
+        return pd.DataFrame()
 
-def save_data_to_bigquery(df):
-    """Save DataFrame to BigQuery table"""
+def save_leads_data(df, table_name, client_id, date_range_type, start_date=None, end_date=None):
+    """Save only the updated rows back to BigQuery, preserving other data"""
     client = init_bigquery_client()
     if not client:
         return False
     
     try:
-        # Create a copy of the dataframe to avoid modifying the original
-        df_to_save = df.copy()
+        table_ref = f"{PROJECT_ID}.master.{table_name}"
         
-        # Convert Campaign_ID column: empty strings to None (NULL in BigQuery)
-        df_to_save['Campaign_ID'] = df_to_save['Campaign_ID'].apply(
-            lambda x: int(x) if x and x.isdigit() else None
-        )
+        # Build a temp table with updates
+        temp_table = f"{PROJECT_ID}.master.temp_{table_name}_{int(time.time())}"
         
-        # Configure the job to replace the table
+        # Load the edited data to a temp table
         job_config = bigquery.LoadJobConfig(
-            write_disposition="WRITE_TRUNCATE",  # This replaces the table
+            write_disposition="WRITE_TRUNCATE",
             autodetect=True,
         )
         
-        table_ref = client.dataset(DATASET_ID).table(TABLE_ID)
-        job = client.load_table_from_dataframe(df_to_save, table_ref, job_config=job_config)
-        job.result()  # Wait for the job to complete
+        job = client.load_table_from_dataframe(df, temp_table, job_config=job_config)
+        job.result()
+        
+        # Get the primary key column (assuming there's an ID column or unique identifier)
+        # You may need to adjust this based on your table structure
+        # For now, we'll use a MERGE statement to update only the editable columns
+        
+        # First, identify a unique key column (common options: id, lead_id, etc.)
+        # Let's check what columns exist
+        sample_query = f"SELECT * FROM `{table_ref}` LIMIT 1"
+        sample_df = client.query(sample_query).to_dataframe()
+        
+        # Try to find a suitable key column
+        possible_keys = ['id', 'lead_id', 'ID', 'Lead_ID', 'form_id', 'call_id']
+        key_column = None
+        for key in possible_keys:
+            if key in sample_df.columns:
+                key_column = key
+                break
+        
+        if not key_column:
+            # If no ID column, we'll have to do a full replace for matching records
+            # This is a fallback - ideally your table should have a unique identifier
+            st.warning("No unique ID column found. Using full table update method.")
+            
+            # Delete the rows that match the filter criteria and insert the new ones
+            # Build the same date filter
+            if date_range_type == "custom" and start_date and end_date:
+                date_filter = f"date BETWEEN '{start_date}' AND '{end_date}'"
+            elif date_range_type == "month_to_date":
+                date_filter = "month_to_date = TRUE"
+            elif date_range_type == "year_to_date":
+                date_filter = "year_to_date = TRUE"
+            elif date_range_type == "quarter_to_date":
+                date_filter = "quarter_to_date = TRUE"
+            else:
+                date_filter = "month_to_date = TRUE"
+            
+            # Create a new table with all data except the filtered rows
+            merge_query = f"""
+            CREATE OR REPLACE TABLE `{table_ref}` AS
+            SELECT * FROM `{table_ref}`
+            WHERE NOT (Client_ID = {client_id} AND {date_filter})
+            UNION ALL
+            SELECT * FROM `{temp_table}`
+            """
+        else:
+            # Use MERGE if we have a key column
+            merge_query = f"""
+            MERGE `{table_ref}` T
+            USING `{temp_table}` S
+            ON T.{key_column} = S.{key_column}
+            WHEN MATCHED THEN
+              UPDATE SET 
+                Lead_Status = S.Lead_Status,
+                Revenue = S.Revenue,
+                Notes = S.Notes
+            WHEN NOT MATCHED THEN
+              INSERT ROW
+            """
+        
+        client.query(merge_query).result()
+        
+        # Clean up temp table
+        client.delete_table(temp_table, not_found_ok=True)
         
         return True
+        
     except Exception as e:
-        st.error(f"Error saving data to BigQuery: {str(e)}")
+        st.error(f"Error saving data: {str(e)}")
+        # Try to clean up temp table
+        try:
+            client.delete_table(temp_table, not_found_ok=True)
+        except:
+            pass
         return False
 
-@st.dialog("Delete Confirmation")
-def delete_confirmation_dialog(selected_count):
-    """Show delete confirmation dialog"""
-    st.warning(f"⚠️ **Are you sure you want to delete {selected_count} row(s)?**")
-    st.write("This action cannot be undone.")
+def calculate_scorecard_metrics(form_df, call_df):
+    """Calculate metrics for scorecards"""
+    # Ensure Lead_Status column exists in both dataframes
+    if not form_df.empty and 'Lead_Status' not in form_df.columns:
+        form_df['Lead_Status'] = 'Pending'
+    if not call_df.empty and 'Lead_Status' not in call_df.columns:
+        call_df['Lead_Status'] = 'Pending'
     
-    col1, col2 = st.columns(2)
+    combined_df = pd.concat([form_df, call_df], ignore_index=True) if not form_df.empty or not call_df.empty else pd.DataFrame()
+    
+    metrics = {
+        'total_leads': len(combined_df),
+        'form_leads': len(form_df),
+        'call_leads': len(call_df),
+        'qualified': len(combined_df[combined_df['Lead_Status'] == 'Qualified']) if not combined_df.empty and 'Lead_Status' in combined_df.columns else 0,
+        'scheduled': len(combined_df[combined_df['Lead_Status'] == 'Scheduled']) if not combined_df.empty and 'Lead_Status' in combined_df.columns else 0,
+        'appointments': len(combined_df[combined_df['Lead_Status'] == 'Appointment']) if not combined_df.empty and 'Lead_Status' in combined_df.columns else 0,
+        'sales': len(combined_df[combined_df['Lead_Status'] == 'Sale']) if not combined_df.empty and 'Lead_Status' in combined_df.columns else 0
+    }
+    
+    return metrics
+
+def display_scorecards(metrics):
+    """Display scorecard metrics in styled containers"""
+    st.markdown("""
+    <style>
+    .scorecard {
+        border: 2px solid #1f77b4;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .scorecard-value {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .scorecard-label {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # First row
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("Delete", key="modal_confirm_delete", type="primary", use_container_width=True):
-            st.session_state.confirm_deletion = True
-            st.rerun()
+        st.markdown(f"""
+        <div class="scorecard">
+            <div class="scorecard-label">Total Leads</div>
+            <div class="scorecard-value">{metrics['total_leads']}</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        if st.button("Cancel", key="modal_cancel_delete", use_container_width=True):
-            st.session_state.show_delete_confirmation = False
-            st.rerun()
-
-# App title
-st.title("The Reef")
-st.info(
-    "Add Accounts by entering required inputs in the sidebar. You can edit or delete the accounts by selecting Update in the table and following the prompts. "
-    "Note how the action buttons appear when you make changes!",
-    icon="✍️"
-)
+        st.markdown(f"""
+        <div class="scorecard">
+            <div class="scorecard-label">Form Leads</div>
+            <div class="scorecard-value">{metrics['form_leads']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class="scorecard">
+            <div class="scorecard-label">Call Leads</div>
+            <div class="scorecard-value">{metrics['call_leads']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.write("")  # Spacing
+    
+    # Second row
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="scorecard">
+            <div class="scorecard-label">Qualified Leads</div>
+            <div class="scorecard-value">{metrics['qualified']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class="scorecard">
+            <div class="scorecard-label">Scheduled</div>
+            <div class="scorecard-value">{metrics['scheduled']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class="scorecard">
+            <div class="scorecard-label">Appointments</div>
+            <div class="scorecard-value">{metrics['appointments']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(f"""
+        <div class="scorecard">
+            <div class="scorecard-label">Sales</div>
+            <div class="scorecard-value">{metrics['sales']}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # Initialize session state
-if "df" not in st.session_state:
-    with st.spinner("Loading data from BigQuery..."):
-        st.session_state.df = load_data_from_bigquery()
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "client_name" not in st.session_state:
+    st.session_state.client_name = None
+if "client_id" not in st.session_state:
+    st.session_state.client_id = None
+if "form_leads_df" not in st.session_state:
+    st.session_state.form_leads_df = pd.DataFrame()
+if "call_leads_df" not in st.session_state:
+    st.session_state.call_leads_df = pd.DataFrame()
+if "form_changes_made" not in st.session_state:
+    st.session_state.form_changes_made = False
+if "call_changes_made" not in st.session_state:
+    st.session_state.call_changes_made = False
 
-# Initialize original dataframe for comparison (to track changes)
-if "original_df" not in st.session_state:
-    st.session_state.original_df = st.session_state.df.copy()
+# Login page
+if not st.session_state.authenticated:
+    st.title("Leads Manager")
+    st.markdown("---")
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        st.subheader("Login")
+        
+        username = st.text_input("Username (Client Name)", placeholder="e.g., windowworldofdenver")
+        password = st.text_input("Password (Client ID)", type="password", placeholder="Enter your Client ID")
+        
+        if st.button("Login", type="primary", use_container_width=True):
+            if username and password:
+                client_name, client_id = verify_login(username, password)
+                
+                if client_name and client_id:
+                    st.session_state.authenticated = True
+                    st.session_state.client_name = client_name
+                    st.session_state.client_id = client_id
+                    st.success(f"Welcome, {client_name}!")
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password")
+            else:
+                st.warning("Please enter both username and password")
+    
+    st.stop()
 
-# Initialize pending accounts dataframe
-if "pending_accounts" not in st.session_state:
-    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
+# Main application (after authentication)
+st.title(f"{st.session_state.client_name} Leads Manager")
 
-# Initialize delete confirmation state
-if "show_delete_confirmation" not in st.session_state:
-    st.session_state.show_delete_confirmation = False
-
-# Initialize deletion confirmation state
-if "confirm_deletion" not in st.session_state:
-    st.session_state.confirm_deletion = False
-
-# Sidebar for inputs
+# Sidebar
 with st.sidebar:
     st.image("Waves-Logo_Color.svg", width=200)
     st.markdown("<br>", unsafe_allow_html=True)
-    st.header("Add an Account")
     
-    # Client Name (required)
-    client_name_options = st.session_state.df["Client_Name"].unique()
-    if len(client_name_options) == 0:
-        client_name_options = ["No clients available"]
+    st.subheader("📅 Date Range")
     
-    client_name = st.selectbox(
-        "Client Name *", 
-        client_name_options,
-        help="Required field"
-    )
-    
-    st.write("")  # Add spacing
-    
-    # Data Source (required)
-    data_source_options = st.session_state.df["Data_Source_Name"].unique()
-    if len(data_source_options) == 0:
-        data_source_options = ["No data sources available"]
+    with st.expander("Select Date Range", expanded=False):
+        date_range_options = {
+            "month_to_date": "Month To Date",
+            "quarter_to_date": "Quarter To Date",
+            "year_to_date": "Year To Date",
+            "custom": "Custom Date Range"
+        }
         
-    data_source_name = st.selectbox(
-        "Data Source *", 
-        data_source_options,
-        help="Required field"
-    )
-    
-    st.write("")  # Add spacing
-    
-    # Account ID (required)
-    account_id = st.text_input(
-        "Account ID *", 
-        help="Required field"
-    )
-    
-    # Conditionally display Campaign ID for Window World + Facebook Ads
-    campaign_id = None
-    if "Window World" in client_name and data_source_name == "Facebook Ads":
-        st.write("")  # Add spacing
-        campaign_id = st.text_input(
-            "Campaign ID *",
-            help="Required field for Window World Facebook Ads"
+        date_range_type = st.selectbox(
+            "Date Range Type",
+            options=list(date_range_options.keys()),
+            format_func=lambda x: date_range_options[x],
+            index=0,  # Default to month_to_date
+            help="Choose between custom date range or predefined periods"
         )
-    
-    st.write("")  # Add spacing before button
-    st.write("")  # Extra spacing
-    
-    # Submit button
-    submitted = st.button("Submit", use_container_width=True)
-    
-    # Form validation
-    form_valid = True
-    error_messages = []
-    
-    if submitted:
-        if not client_name or client_name == "No clients available":
-            form_valid = False
-            error_messages.append("Client Name is required")
         
-        if not data_source_name or data_source_name == "No data sources available":
-            form_valid = False
-            error_messages.append("Data Source is required")
-            
-        if not account_id:
-            form_valid = False
-            error_messages.append("Account ID is required")
-            
-        if "Window World" in client_name and data_source_name == "Facebook Ads" and not campaign_id:
-            form_valid = False
-            error_messages.append("Campaign ID is required for Window World Facebook Ads")
+        start_date = None
+        end_date = None
+        
+        if date_range_type == "custom":
+            col1, col2 = st.columns(2)
+            with col1:
+                start_date = st.date_input(
+                    "Start Date",
+                    value=date.today() - timedelta(days=30),
+                    help="Select start date"
+                )
+            with col2:
+                end_date = st.date_input(
+                    "End Date", 
+                    value=date.today(),
+                    help="Select end date"
+                )
+        else:
+            st.info(f"Predefined range: {date_range_options[date_range_type]}")
     
-    # Display validation errors
-    if submitted and not form_valid:
-        for error in error_messages:
-            st.error(error)
-
-# Handle form submission - add to pending accounts
-if submitted and form_valid:
-    # Get Client_ID based on selected Client_Name
-    client_ids = st.session_state.df[st.session_state.df["Client_Name"] == client_name]["Client_ID"].unique()
-    client_id = client_ids[0] if len(client_ids) > 0 else None
+    st.markdown("---")
     
-    # Generate new account data
-    new_account = pd.DataFrame([{
-        "Client_ID": client_id,
-        "Account_ID": account_id,
-        "Data_Source_Name": data_source_name,
-        "Client_Name": client_name,
-        "Campaign_ID": campaign_id if campaign_id else "",
-        "Campaign_Name": ""  # Empty for now, can be filled later
-    }])
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.authenticated = False
+        st.session_state.client_name = None
+        st.session_state.client_id = None
+        st.rerun()
+
+# Load data based on date range
+with st.spinner("Loading leads data..."):
+    # Ensure editable columns exist in both tables
+    ensure_editable_columns_exist("all_form_table")
+    ensure_editable_columns_exist("all_marchex_table")
     
-    # Add to pending accounts
-    st.session_state.pending_accounts = pd.concat([st.session_state.pending_accounts, new_account], ignore_index=True)
+    st.session_state.form_leads_df = load_leads_data(
+        "all_form_table", 
+        st.session_state.client_id,
+        date_range_type,
+        start_date,
+        end_date
+    )
 
-# Initialize master access in session state
-if "master_access" not in st.session_state:
-    st.session_state.master_access = False
+    st.session_state.call_leads_df = load_leads_data(
+        "all_marchex_table", 
+        st.session_state.client_id,
+        date_range_type,
+        start_date,
+        end_date
+    )
 
-# Main content area with tabs (always show Master tab)
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Paid Media", "GA4", "Forms", "Marchex", "Search Console", "🔒 Master"])
+# Calculate and display scorecards
+metrics = calculate_scorecard_metrics(st.session_state.form_leads_df, st.session_state.call_leads_df)
+display_scorecards(metrics)
+
+st.markdown("---")
+
+# Tabs
+tab1, tab2 = st.tabs(["Form Leads", "Call Leads"])
 
 with tab1:
-    st.header("Paid Media")
+    st.header("Form Leads")
     
-    # Show pending accounts if any
-    if not st.session_state.pending_accounts.empty:
-        st.write("Account submitted! Here are the details:")
+    form_df = st.session_state.form_leads_df.copy()
+    
+    if not form_df.empty:
+        # Count pending statuses
+        pending_count = len(form_df[form_df['Lead_Status'] == 'Pending'])
         
-        # Select only the desired columns for display
-        columns_to_display = ["Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
-        available_columns = [col for col in columns_to_display if col in st.session_state.pending_accounts.columns]
+        st.write(f"Total Form Leads: `{len(form_df)}` | Pending Lead Statuses: `{pending_count}`")
         
-        # Display pending accounts as editable dataframe
-        edited_pending = st.data_editor(
-            st.session_state.pending_accounts[available_columns],
+        # Get list of non-editable columns
+        editable_cols = ['Lead_Status', 'Revenue', 'Notes']
+        all_cols = form_df.columns.tolist()
+        disabled_cols = [col for col in all_cols if col not in editable_cols]
+        
+        # Display editable dataframe
+        edited_form_df = st.data_editor(
+            form_df,
             use_container_width=True,
             hide_index=True,
-            key="pending_accounts_editor"
-        )
-        
-        # Update pending accounts with any edits
-        for col in available_columns:
-            st.session_state.pending_accounts[col] = edited_pending[col]
-        
-        # Buttons for pending accounts
-        col1, col2, col3 = st.columns([1, 1, 4])
-        
-        with col1:
-            if st.button("💾 Save All", key="save_all_accounts", type="primary"):
-                # Create the final dataframe to save (original + pending)
-                final_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
-                
-                with st.spinner("Saving all changes to BigQuery..."):
-                    if save_data_to_bigquery(final_df):
-                        # Update session state with the saved data
-                        st.session_state.df = final_df.copy()
-                        st.session_state.original_df = final_df.copy()
-                        # Clear pending accounts since they're now saved
-                        st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                        st.toast("All accounts saved successfully to BigQuery!", icon="✅")
-                        time.sleep(1)
-                        st.rerun()
-                    else:
-                        st.error("❌ Failed to save changes to BigQuery")
-        
-        with col2:
-            if st.button("🗑️ Clear Pending", type="secondary"):
-                st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                st.rerun()
-
-    # Combined dataframe for display (original + pending + edits)
-    if st.session_state.pending_accounts.empty:
-        display_df = st.session_state.df.copy()
-    else:
-        display_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
-    
-    # Select only the desired columns for display and add checkbox column
-    columns_to_display = ["Account_ID", "Data_Source_Name", "Client_ID", "Client_Name", "Campaign_ID", "Campaign_Name"]
-    
-    # Check if dataframe has the required columns
-    available_columns = [col for col in columns_to_display if col in display_df.columns]
-    
-    if len(available_columns) > 0:
-        # Create a placeholder for the status message above the data editor
-        status_placeholder = st.empty()
-        
-        # Check if there are pending accounts
-        has_pending = not st.session_state.pending_accounts.empty
-        
-        # Add checkbox column for update selection
-        display_df_with_checkbox = display_df[available_columns].copy()
-        display_df_with_checkbox["Update"] = False  # Add checkbox column
-        
-        # Display the data editor for all accounts (read-only)
-        st.write(f"Paid Media Accounts: `{len(st.session_state.df)}` | Pending Accounts: `{len(st.session_state.pending_accounts)}`")
-        
-        # Create the data editor with only Update column editable
-        edited_df = st.data_editor(
-            display_df_with_checkbox,
-            use_container_width=True,
-            hide_index=True,
-            key="all_accounts_editor",
-            disabled=available_columns,  # Disable all columns except Update
+            disabled=disabled_cols,
             column_config={
-                "Update": st.column_config.CheckboxColumn(
-                    "Update",
-                    help="Check to edit this row",
-                    default=False,
-                    width="small"
+                "Lead_Status": st.column_config.SelectboxColumn(
+                    "Lead Status",
+                    options=['Pending', 'Unqualified', 'Qualified', 'Scheduled', 'Appointment', 'Sale'],
+                    required=True,
+                    default='Pending'
+                ),
+                "Revenue": st.column_config.NumberColumn(
+                    "Revenue",
+                    format="$%.2f",
+                    min_value=0.0,
+                    default=0.0
+                ),
+                "Notes": st.column_config.TextColumn(
+                    "Notes",
+                    max_chars=500,
+                    default=""
                 )
-            }
+            },
+            key="form_leads_editor"
         )
         
-        # Get selected rows for editing
-        selected_rows = edited_df[edited_df["Update"] == True]
-        selected_for_update = len(selected_rows) > 0
+        # Check if changes were made
+        if not edited_form_df.equals(form_df):
+            st.session_state.form_changes_made = True
         
-        # Show toast for row selection changes
-        if selected_for_update:
-            if "last_selected_count" not in st.session_state:
-                st.session_state.last_selected_count = 0
-            
-            current_count = len(selected_rows)
-            if current_count != st.session_state.last_selected_count:
-                if current_count > 0:
-                    st.toast(f"{current_count} row(s) selected for editing", icon="📝")
-                st.session_state.last_selected_count = current_count
-        else:
-            if "last_selected_count" in st.session_state and st.session_state.last_selected_count > 0:
-                st.session_state.last_selected_count = 0
-        
-        # Show status message
-        if has_pending:
-            status_placeholder.warning("⚠️ You have pending accounts.")
-        else:
-            status_placeholder.empty()
-        
-        # Show editable section for selected rows
-        if selected_for_update:
-            st.markdown("---")
-            st.subheader("Edit Selected Rows")
-            
-            # Create editable dataframe from selected rows (without Update column)
-            editable_rows = selected_rows.drop(columns=["Update"]).copy()
-            
-            # Display editable dataframe
-            edited_selected = st.data_editor(
-                editable_rows,
-                use_container_width=True,
-                hide_index=True,
-                key="editable_selected_rows",
-                num_rows="fixed"
-            )
-            
-            # Action buttons for selected rows
-            col1, col2, col3 = st.columns([1, 1, 4])
-            
-            with col1:
-                if st.button("💾 Save All", key="save_selected_rows_btn", type="primary"):
-                    # Update the main dataframe with edited values
-                    selected_indices = edited_df[edited_df["Update"] == True].index
-                    
-                    # Update the display dataframe with edited values
-                    for i, idx in enumerate(selected_indices):
-                        for col in available_columns:
-                            display_df.loc[idx, col] = edited_selected.iloc[i][col]
-                    
-                    # Determine which part is original vs pending
-                    original_count = len(st.session_state.df)
-                    
-                    # Update session state
-                    if len(display_df) > 0:
-                        if original_count > 0:
-                            st.session_state.df = display_df.iloc[:original_count].copy()
-                        if len(display_df) > original_count:
-                            st.session_state.pending_accounts = display_df.iloc[original_count:].copy()
-                    
-                    # Save to BigQuery
-                    with st.spinner("Saving changes to BigQuery..."):
-                        if save_data_to_bigquery(display_df):
-                            st.session_state.df = display_df.copy()
-                            st.session_state.original_df = display_df.copy()
-                            st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                            st.toast("✅ Changes saved successfully to BigQuery!", icon="✅")
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            st.error("❌ Failed to save changes to BigQuery")
-            
-            with col2:
-                if st.button("🗑️ Delete", key="delete_selected_btn", type="secondary"):
-                    # Show popup confirmation dialog
-                    st.session_state.show_delete_confirmation = True
-                    st.session_state.confirm_deletion = False
-            
-            # Show the delete confirmation popup if requested
-            if st.session_state.get("show_delete_confirmation", False):
-                selected_count = len(selected_rows)
-                delete_confirmation_dialog(selected_count)
-            
-            # Handle confirmed deletion
-            if st.session_state.get("confirm_deletion", False):
-                # Get indices of selected rows
-                selected_indices = edited_df[edited_df["Update"] == True].index
-                
-                # Remove selected rows
-                remaining_rows = display_df.drop(selected_indices).reset_index(drop=True)
-                
-                # Update session state
-                original_count = len(st.session_state.df)
-                
-                if len(remaining_rows) > 0:
-                    if original_count > 0:
-                        st.session_state.df = remaining_rows.iloc[:min(len(remaining_rows), original_count)].copy()
-                    if len(remaining_rows) > original_count:
-                        st.session_state.pending_accounts = remaining_rows.iloc[original_count:].copy()
-                    else:
-                        st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                else:
-                    st.session_state.df = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                
-                # Save to BigQuery
-                final_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
-                
-                with st.spinner("Deleting rows from BigQuery..."):
-                    if save_data_to_bigquery(final_df):
-                        st.session_state.original_df = final_df.copy()
-                        st.toast(f"🗑️ {len(selected_indices)} row(s) deleted successfully!", icon="🗑️")
-                        # Reset confirmation states
-                        st.session_state.show_delete_confirmation = False
-                        st.session_state.confirm_deletion = False
+        # Show save button if changes were made
+        if st.session_state.form_changes_made:
+            if st.button("💾 Save Changes", type="primary", key="save_form_leads"):
+                with st.spinner("Saving changes..."):
+                    if save_leads_data(edited_form_df, "all_form_table", st.session_state.client_id, date_range_type, start_date, end_date):
+                        st.session_state.form_leads_df = edited_form_df
+                        st.session_state.form_changes_made = False
+                        st.success("✅ Form leads updated successfully!")
                         time.sleep(1)
                         st.rerun()
                     else:
-                        st.error("❌ Failed to delete rows from BigQuery")
-                        # Reset confirmation states
-                        st.session_state.show_delete_confirmation = False
-                        st.session_state.confirm_deletion = False
-        
-        # Action buttons for pending accounts (only show if no rows selected for update)
-        elif has_pending:
-            st.markdown("---")
-            col1, col2, col3 = st.columns([1, 1, 4])
-            
-            with col1:
-                if st.button("💾 Save All", key="save_pending_accounts_btn", type="primary"):
-                    # Save pending accounts
-                    final_df = pd.concat([st.session_state.df, st.session_state.pending_accounts], ignore_index=True)
-                    
-                    with st.spinner("Saving all changes to BigQuery..."):
-                        if save_data_to_bigquery(final_df):
-                            st.session_state.df = final_df.copy()
-                            st.session_state.original_df = final_df.copy()
-                            st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                            st.toast("✅ All pending accounts saved successfully!", icon="✅")
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            st.error("❌ Failed to save changes to BigQuery")
-            
-            with col2:
-                if st.button("🗑️ Clear Pending", key="clear_pending_accounts_btn", type="secondary"):
-                    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                    st.toast("🧹 Pending accounts cleared", icon="🧹")
-                    st.rerun()
+                        st.error("❌ Failed to save changes")
     else:
-        st.warning("No data available to display.")
-        
+        st.info("No form leads data available for the selected date range.")
+
 with tab2:
-    st.header("GA4")
-    st.info("GA4 content coming soon...")
-
-with tab3:
-    st.header("Forms")
-    st.info("Forms content coming soon...")
-
-with tab4:
-    st.header("Marchex")
-    st.info("Marchex content coming soon...")
-
-with tab5:
-    st.header("Search Console")
-    st.info("Search Console content coming soon...")
-
-# Master tab (always visible, but content depends on authentication)
-with tab6:
-    if not st.session_state.master_access:
-        st.header("Master Access")
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col1:
-            master_password = st.text_input("Master Password:", type="password", key="master_pwd")
+    st.header("Call Leads")
+    
+    call_df = st.session_state.call_leads_df.copy()
+    
+    if not call_df.empty:
+        # Count pending statuses
+        pending_count = len(call_df[call_df['Lead_Status'] == 'Pending'])
         
-        col1, col2, col3 = st.columns([1, 1, 2])
-        with col1:
-            if st.button("Unlock", type="primary"):
-                # Change this password to whatever you want
-                if master_password == "reef2025":
-                    st.session_state.master_access = True
-                    st.success("Access granted!")
-                    st.rerun()
-                else:
-                    st.error("Invalid password")
-    else:
-        # Show master control panel
-        st.header("🔒 Master Control Panel")
+        st.write(f"Total Call Leads: `{len(call_df)}` | Pending Lead Statuses: `{pending_count}`")
         
-        # Master controls
-        col1, col2 = st.columns(2)
+        # Get list of non-editable columns
+        editable_cols = ['Lead_Status', 'Revenue', 'Notes']
+        all_cols = call_df.columns.tolist()
+        disabled_cols = [col for col in all_cols if col not in editable_cols]
         
-        with col1:
-            st.subheader("Database Management")
-            
-            # Download current data
-            if st.button("📥 Download CSV"):
-                csv_data = st.session_state.df.to_csv(index=False)
-                st.download_button(
-                    label="Download reefpaidmedia.csv",
-                    data=csv_data,
-                    file_name="reefpaidmedia.csv",
-                    mime="text/csv"
+        # Display editable dataframe
+        edited_call_df = st.data_editor(
+            call_df,
+            use_container_width=True,
+            hide_index=True,
+            disabled=disabled_cols,
+            column_config={
+                "Lead_Status": st.column_config.SelectboxColumn(
+                    "Lead Status",
+                    options=['Pending', 'Unqualified', 'Qualified', 'Scheduled', 'Appointment', 'Sale'],
+                    required=True,
+                    default='Pending'
+                ),
+                "Revenue": st.column_config.NumberColumn(
+                    "Revenue",
+                    format="$%.2f",
+                    min_value=0.0,
+                    default=0.0
+                ),
+                "Notes": st.column_config.TextColumn(
+                    "Notes",
+                    max_chars=500,
+                    default=""
                 )
-            
-            # Refresh data from BigQuery
-            if st.button("🔄 Refresh from BigQuery"):
-                with st.spinner("Refreshing data..."):
-                    st.session_state.df = load_data_from_bigquery()
-                    st.session_state.original_df = st.session_state.df.copy()
-                    # Clear pending accounts on refresh
-                    st.session_state.pending_accounts = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                    st.success("Data refreshed!")
-                    st.rerun()
-            
-            # Clear all data (with confirmation)
-            if st.button("🗑️ Clear All Data", type="secondary"):
-                if st.button("⚠️ Confirm Delete All", type="secondary"):
-                    empty_df = pd.DataFrame(columns=["Client_ID", "Account_ID", "Data_Source_Name", "Client_Name", "Campaign_ID", "Campaign_Name"])
-                    with st.spinner("Clearing all data..."):
-                        if save_data_to_bigquery(empty_df):
-                            st.session_state.df = empty_df
-                            st.session_state.original_df = empty_df.copy()
-                            st.session_state.pending_accounts = empty_df.copy()
-                            st.success("All data cleared!")
-                            st.rerun()
-                        else:
-                            st.error("Failed to clear data")
+            },
+            key="call_leads_editor"
+        )
         
-        with col2:
-            st.subheader("System Info")
-            st.write(f"**Total Records in BigQuery:** {len(st.session_state.df)}")
-            st.write(f"**Pending Accounts:** {len(st.session_state.pending_accounts)}")
-            st.write(f"**Unique Clients:** {st.session_state.df['Client_Name'].nunique()}")
-            st.write(f"**Data Sources:** {', '.join(st.session_state.df['Data_Source_Name'].unique())}")
-            
-            # Raw data view
-            if st.checkbox("Show Raw BigQuery Data"):
-                st.dataframe(st.session_state.df, use_container_width=True)
-            
-            if st.checkbox("Show Pending Accounts"):
-                st.dataframe(st.session_state.pending_accounts, use_container_width=True)
+        # Check if changes were made
+        if not edited_call_df.equals(call_df):
+            st.session_state.call_changes_made = True
         
-        # Logout from master
-        st.write("---")
-        if st.button("🚪 Logout from Master", type="secondary"):
-            st.session_state.master_access = False
-            st.rerun()
+        # Show save button if changes were made
+        if st.session_state.call_changes_made:
+            if st.button("💾 Save Changes", type="primary", key="save_call_leads"):
+                with st.spinner("Saving changes..."):
+                    if save_leads_data(edited_call_df, "all_marchex_table", st.session_state.client_id, date_range_type, start_date, end_date):
+                        st.session_state.call_leads_df = edited_call_df
+                        st.session_state.call_changes_made = False
+                        st.success("✅ Call leads updated successfully!")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to save changes")
+    else:
+        st.info("No call leads data available for the selected date range.")

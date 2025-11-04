@@ -1,0 +1,227 @@
+Client_ID,Client_Name,Business,Client_Group,Status,Waves,Division,Vertical,Business_Model,Frequency,Primary_KPI,Comparison
+A001,Acme Stove and Fireplace Center,Acme Stove and Fireplace Center,Acme Stove and Fireplace Center,Active,1,Echo,Food & Bev,B2C,Monthly,Ad Conversions,Last Year Same Period
+A002,ADS,ADS,ADS,Paused,,Echo,Home Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+A003,ADS Capture,ADS,ADS,Paused,,Echo,Home Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+A004,ADS Pipe California,ADS,ADS,Paused,,Echo,Home Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+A005,ADS Pipe Florida,ADS,ADS,Paused,,Echo,Home Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+A006,ADS Pipe Texas,ADS,ADS,Paused,,Echo,Home Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+A007,ADS StormTech,ADS,ADS,Paused,,Echo,Home Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+A008,ADS Water Quality,ADS,ADS,Paused,,Echo,Home Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+A009,Americourt Inc.,Americourt Inc.,Americourt Inc.,Active,1,Echo,,B2B,Monthly,Ad Conversions,Last Year Same Period
+A010,Anvil American,Anvil American,Anvil American,Active,1,Echo,,B2B,Monthly,Ad Conversions,Last Year Same Period
+A011,Atlantic Spas & Billiards,Atlantic Spas & Billiards,Atlantic Spas & Billiards,Inactive,,Echo,Home Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+A012,Adoverse IT,Adoverse IT,Adoverse IT,Active,1,Echo,Professional Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+A013,All Star Dog Training,All Star Dog Training,All Star Dog Training,Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+B001,Barefoot Lawn Care,Barefoot Lawn Care,Barefoot Lawn Care,Active,2,Echo,Home Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+B002,Beacon Prescriptions,Beacon Prescriptions,Beacon Prescriptions,Active,1,Echo,Medical,B2C,Monthly,Ad Conversions,Last Year Same Period
+B003,Benton Technology Solutions,Benton Technology Solutions,Benton Technology Solutions,Inactive,1,Echo,,B2B,Monthly,Ad Conversions,Last Year Same Period
+B004,Bonzini USA,Bonzini USA,Bonzini USA,Inactive,,Echo,Home Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+B005,"Ben Franklin Plumbing - Meridian, ID",Ben Franklin Plumbing,Ben Franklin Plumbing,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+B006,Ben Franklin Plumbing of the Triad,Ben Franklin Plumbing,Ben Franklin Plumbing,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+B007,"Ben Franklin Plumbing - MetroWest, MA",Ben Franklin Plumbing,Ben Franklin Plumbing,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+B008,"Ben Franklin Plumbing - Springfield, MO",Ben Franklin Plumbing,Ben Franklin Plumbing,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+C001,Cambridge Fitness,Cambridge Fitness,Cambridge Fitness,Inactive,,Echo,Lifestyle,B2C,Monthly,Ad Conversions,Previous Period
+C002,Cambridge Village,Cambridge Village,Cambridge Village,Inactive,,Echo,Lifestyle,B2C,Monthly,Ad Conversions,Previous Period
+C003,Cannon Pharmacies,Cannon Pharmacies,Cannon Pharmacies,Inactive,,Echo,Medical,B2B,Monthly,Ad Conversions,Last Year Same Period
+C004,Capital Sign Solutions,Capital Sign Solutions,Capital Sign Solutions,Inactive,,Echo,,B2B,Monthly,Ad Conversions,Last Year Same Period
+C005,CAPTRUST,CAPTRUST,CAPTRUST,Inactive,,Echo,Professional Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+C006,Care First Animal Hospital,Care First Animal Hospital,Care First Animal Hospital,Inactive,,Echo,Medical,B2C,Monthly,Ad Conversions,Last Year Same Period
+C007,Carolina QuickCare,Carolina QuickCare,Carolina QuickCare,Active,2,Echo,Medical,B2C,Monthly,Ad Conversions,Last Year Same Period
+C016,Carolina TMJ & Facial Pain Center,Carolina TMJ & Facial Pain Center,Carolina TMJ & Facial Pain Center,Active,2,Echo,Medical,B2C,Monthly,Ad Conversions,Last Year Same Period
+C017,Carolina Yard Barns,Carolina Yard Barns,Carolina Yard Barns,Active,2,Echo,Home Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+C018,Cary Cart Company,Cary Cart Company,Cary Cart Company,Active,2,Echo,Golf,B2C,Monthly,Ad Conversions,Last Year Same Period
+C019,CK's Plumbing,CK's Plumbing,CK's Plumbing,Active,2,Echo,Home Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+C020,Coastal Massage & BodyWork,Coastal Massage & BodyWork,Coastal Massage & BodyWork,Inactive,,Echo,Medical,B2C,Monthly,Ad Conversions,Last Year Same Period
+C021,Concert Golf Partners,Concert Golf Partners,Concert Golf Partners,Inactive,,Echo,Golf,B2C,Monthly,Ad Conversions,Last Year Same Period
+C022,Custom Patch Hats,Custom Patch Hats,Custom Patch Hats,Active,2,Echo,Lifestyle,B2B,Monthly,Ad Conversions,Previous Period
+C023,Cutter Creek,Cutter Creek,Cutter Creek,Active,2,Echo,Golf,B2C,Monthly,Ad Conversions,Previous Period
+D001,"DANCO Electrical Contractors, Inc.","DANCO Electrical Contractors, Inc.",DANCO Electrical Contractors Inc.,Active,1,Echo,Home Services,B2B,Monthly,Ad Conversions,Last Year Same Period
+E001,ElectriCities,ElectriCities,ElectriCities,Active,2,Echo,,B2C,Monthly,Ad Conversions,Last Year Same Period
+F001,Fairview Garden Center,Fairview Garden Center,Fairview Garden Center,Inactive,1,Echo,Home Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+F002,Fairway Green,Fairway Green,Fairway Green,Inactive,,Echo,Home Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+F003,Fink's Jewelers,Fink's Jewelers,Fink's Jewelers,Active,2,Echo,Lifestyle,B2C,Monthly,Sales,Previous Period
+F004,Forest Creek Golf Club,Forest Creek Golf Club,Forest Creek Golf Club,Inactive,,Echo,Golf,B2C,Monthly,Website Conversions,Last Year Same Period
+F005,Friends of Pinehurst Surgical Clinic,Friends of Pinehurst Surgical Clinic,Friends of Pinehurst Surgical Clinic,Inactive,,Echo,Medical,B2C,Monthly,Ad Conversions,Last Year Same Period
+G001,Gailor Hunt,Gailor Hunt,Gailor Hunt,Inactive,1,Echo,Professional Services,B2C,Monthly,Ad Conversions,Last Year Same Period
+G002,Garage Door Specialist,Garage Door Specialist,Garage Door Specialist,Active,2,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+G003,Glass Depots & Bi-Fold Depot,Glass Depots & Bi-Fold Depot,Glass Depots & Bi-Fold Depot,Inactive,2,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+G004,Glenwood Village Dentistry,Glenwood Village Dentistry,Glenwood Village Dentistry,Active,1,Echo,Medical,B2C,Monthly,Ad Conversions,Last Year Same Period
+G005,Golf Pride,Golf Pride,Golf Pride,Inactive,,Enterprise,Golf,B2C,Monthly,Website Conversions,Last Year Same Period
+G006,Golf Pride - APAC Media,Golf Pride,Golf Pride,Inactive,,Enterprise,Golf,B2C,Monthly,Website Conversions,Last Year Same Period
+G007,Golf Pride - CPX Campaign,Golf Pride,Golf Pride,Inactive,,Enterprise,Golf,B2C,Monthly,Website Conversions,Last Year Same Period
+G008,Golf Pride - Evergreen Campaign,Golf Pride,Golf Pride,Inactive,,Enterprise,Golf,B2C,Monthly,Website Conversions,Last Year Same Period
+G009,Goldco,Goldco,Goldco,Active,2,Enterprise,Professional Services,B2C,Monthly,Leads,Previous Period
+H001,Hicks Landscaping,Hicks Landscaping,Hicks Landscaping,Active,1,Echo,Home Services,B2C,Monthly,Website Conversions,Last Year Same Period
+H002,Hicks - American Artificial Turf Grass,Hicks Landscaping,Hicks Landscaping,Active,1,Echo,Home Services,B2C,Monthly,Website Conversions,Last Year Same Period
+I001,Imperial Garden Restaurant,Imperial Garden Restaurant,Imperial Garden Restaurant,Active,1,Echo,Food & Bev,B2C,Monthly,Website Conversions,Last Year Same Period
+I002,"Invited USA, Inc.",Invited,Invited,Active,,Enterprise,Golf,B2C,Monthly,Website Conversions,Last Year Same Period
+I003,"Invited USA, Inc. (Google Ads Expansion)",Invited,Invited,Inactive,,Enterprise,Golf,B2C,Monthly,Website Conversions,Last Year Same Period
+J001,JM Edwards Jewelry,JM Edwards Jewelry,JM Edwards Jewelry,Inactive,,Echo,Lifestyle,B2C,Monthly,Website Conversions,Last Year Same Period
+K001,Keowee Family Dentistry,Keowee Family Dentistry,Keowee Family Dentistry,Active,1,Echo,Home Services,B2C,Monthly,Website Conversions,Last Year Same Period
+K002,Kinetico Advanced Water Systems (Denver),Kinetico,Kinetico,Active,4,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+K003,Kinetico Advanced Water Systems (Newport),Kinetico,Kinetico,Active,4,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+K004,Kinetico Advanced Water Systems (Raleigh),Kinetico,Kinetico,Active,4,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+K005,Kinetico Advanced Water Systems (Savannah),Kinetico,Kinetico,Active,4,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+K006,Kinetico Advanced Water Systems (Wilmington),Kinetico,Kinetico,Active,4,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+K007,Kohler Home Energy (National Strategy),Kohler Home Energy (National Strategy),Kohler Home Energy (National Strategy),Inactive,2,Enterprise,Home Services,B2C,Monthly,Leads,Previous Period
+L001,Lawn Squad,Lawn Squad,Lawn Squad,Inactive,,Echo,Home Services,B2C,Monthly,Website Conversions,Previous Period
+L002,"Lennon, Camak & Bertics Attorneys at Law","Lennon, Camak & Bertics Attorneys at Law",Lennon Camak & Bertics Attorneys at Law,Inactive,,Echo,Professional Services,B2C,Monthly,Clicks,Last Year Same Period
+L003,Lumos,Lumos,Lumos,Active,2,Enterprise,Home Services,B2C,Monthly,Website Conversions,Previous Period
+L004,Liberty Hardware,Liberty Hardware,Liberty Hardware,Active,2,Echo,Home Services,B2C,Monthly,Sales,Last Year Same Period
+L005,Lowcountry Urgent Care,Carolina QuickCare,Carolina QuickCare,Active,1,Echo,Medical,B2C,Monthly,Leads,Last Year Same Period
+M001,Mableton Pharmacy,Mableton Pharmacy,Mableton Pharmacy,Active,1,Echo,Medical,B2C,Monthly,Clicks,Last Year Same Period
+M002,Marvin Windows,Marvin Windows,Marvin Windows,Inactive,,Echo,Home Services,B2C,Monthly,Clicks,Last Year Same Period
+M003,"Material Handling Technologies, Inc.","Material Handling Technologies, Inc.",Material Handling Technologies Inc.,Active,2,Echo,,B2B,Monthly,Clicks,Last Year Same Period
+M004,Meyer Tool Huntersville,Meyer Tool Huntersville,Meyer Tool Huntersville,Active,1,Echo,,B2B,Monthly,Clicks,Last Year Same Period
+M005,Mintera,Mintera,Mintera,Active,2,Echo,Home Services,B2C,Monthly,Sales,Last Year Same Period
+M006,Miss Debbie's Specialty Apples,Miss Debbie's Specialty Apples,Miss Debbie's Specialty Apples,Inactive,,Echo,Food & Bev,B2C,Monthly,Clicks,Last Year Same Period
+M007,My Propane Butler,My Propane Butler,My Propane Butler,Inactive,,Echo,Home Services,B2C,Monthly,Clicks,Last Year Same Period
+M008,Myers Medical Pharmacy,Myers Medical Pharmacy,Myers Medical Pharmacy,Active,1,Echo,Medical,B2C,Monthly,Clicks,Last Year Same Period
+M009,Mister Sparky - Inland Empire,Mister Sparky,Mister Sparky - Inland Empire,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+M010,Mercury Broadband,Mercury Broadband,Mercury Broadband,Active,2,Enterprise,Home Services,B2C,Monthly,Website Conversions,Previous Period
+M011,Mister Sparky Central Inland Empire,Mister Sparky,Mister Sparky Central Inland Empire,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+M012,Mister Sparky Hempstead,Mister Sparky,Mister Sparky Hempstead,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+M013,Mister Sparky Little Rock,Mister Sparky,Mister Sparky Little Rock,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+M014,Mister Sparky Raleigh & Wake Forest,Mister Sparky,Mister Sparky Raleigh,Active,2,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+M015,Mister Sparky Grand Rapids,Mister Sparky,Mister Sparky Grand Rapids,Inactive,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+N001,NC Bar CLE,NC Bar CLE,NC Bar CLE,Active,2,Echo,Professional Services,B2B,Monthly,Clicks,Last Year Same Period
+N002,Northern Construction LLC,Northern Construction LLC,Northern Construction LLC,Active,1,Echo,Home Services,B2B,Monthly,Clicks,Last Year Same Period
+O001,Overby Court Reporting,Overby Court Reporting,Overby Court Reporting,Active,1,Echo,Professional Services,B2C,Monthly,Clicks,Last Year Same Period
+O002,One Hour Heating & Air Elk Grove,One Hour Heating & Air,One Hour Heating & Air,Active,2,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+O003,One Hour Heating & Air Meridian,One Hour Heating & Air,One Hour Heating & Air,Inactive,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+O004,One Hour Heating & Air Midland Park,One Hour Heating & Air,One Hour Heating & Air,Active,2,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+O005,One Hour Heating & Air NWA,One Hour Heating & Air,One Hour Heating & Air,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+O006,One Hour Heating & Air Tucson,One Hour Heating & Air,One Hour Heating & Air,Active,2,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+O007,One Hour Heating & Air Lewis Center,One Hour Heating & Air,One Hour Heating & Air,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+O008,One Hour Heating & Air O'Fallon,One Hour Heating & Air,One Hour Heating & Air,Paused,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+P001,Papa John's Atlanta,Papa John's,Papa John's Atlanta,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P002,Papa John's Charlotte,Papa John's,Papa John's Carolinas,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P003,Papa John's Cleveland,Papa John's,Papa John's Cleveland,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P004,Papa John's Columbia/Jeff City,Papa John's,Papa John's Jeff City Terre Haute Topeka,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P005,Papa John's Corporate,Papa John's,Papa John's Corporate,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P006,Papa John's Greensboro,Papa John's,Papa John's Carolinas,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P007,Papa John's Indianapolis,Papa John's,Papa John's Nashville + Indianapolis,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P008,Papa John's Kansas City,Papa John's,Papa John's St Louis + Kansas City,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P009,Papa John's Lexington,Papa John's,Papa John's Louisville + Lexington,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P010,Papa John's Louisville,Papa John's,Papa John's Louisville + Lexington,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P011,Papa John's Mobile/Pensacola,Papa John's,Papa John's Mobile/Pensacola + Wilmington,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P012,Papa John's Nashville,Papa John's,Papa John's Nashville + Indianapolis,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P013,Papa John's Raleigh,Papa John's,Papa John's Carolinas,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P014,Papa John's St Louis,Papa John's,Papa John's St Louis + Kansas City,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P015,Papa John's Terre Haute,Papa John's,Papa John's Jeff City Terre Haute Topeka,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P016,Papa John's Topeka,Papa John's,Papa John's Jeff City Terre Haute Topeka,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P017,Papa John's Wilmington,Papa John's,Papa John's Mobile/Pensacola + Wilmington,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P018,Papa Johns - Corporate Store Campaigns,Papa John's,Papa Johns - Corporate Store Campaigns,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P019,Papa Johns Single Store Campaigns - Franchise,Papa John's,Papa Johns Single Store Campaigns - Franchise,Paused,,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+P020,Pentair Pool,Pentair Pool,Pentair Pool,Active,3,Enterprise,Home Services,B2C,Monthly,Leads,Previous Period
+P021,Peoplease,Peoplease,Peoplease,Active,1,Echo,,B2B,Monthly,Website Conversions,Last Year Same Period
+P022,Pinehurst Surgical Clinic,Pinehurst Surgical Clinic,Pinehurst Surgical Clinic,Inactive,,Echo,Medical,B2C,Monthly,Website Conversions,Last Year Same Period
+P023,Power Curbers,Power Curbers,Power Curbers,Active,2,Echo,Home Services,B2B,Monthly,Website Conversions,Last Year Same Period
+P024,"Pupsi, Inc.","Pupsi, Inc.",Pupsi Inc.,Inactive,,Echo,Lifestyle,B2C,Monthly,Website Conversions,Last Year Same Period
+R001,Raleigh Paving,Raleigh Paving,Raleigh Paving,Active,2,Echo,Home Services,B2B,Monthly,Website Conversions,Last Year Same Period
+R002,Revels Turf & Tractor,Revels Turf & Tractor,Revels Turf & Tractor,Active,1,Echo,Home Services,B2B,Monthly,Website Conversions,Last Year Same Period
+S001,Safe Step Walk-In Tub,Safe Step,Safe Step Walk-In Tub,Active,,Enterprise,Home Services,B2C,Monthly,Leads,Previous Period
+S002,SERVPRO,SERVPRO,SERVPRO,Inactive,,Echo,Home Services,B2C,Monthly,Leads,Last Year Same Period
+S003,Shed World of Long Island,Shed World of Long Island,Shed World of Long Island,Active,2,Echo,Home Services,B2C,Monthly,Clicks,Last Year Same Period
+S004,Sit Means Sit - All Pro Dogs,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S005,Sit Means Sit - Apex,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S006,Sit Means Sit - Bel Air (MD),Sit Means Sit,Sit Means Sit (MD & DE),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S007,Sit Means Sit - Buffalo,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S008,Sit Means Sit - Central Wyoming,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S009,Sit Means Sit - Charleston,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S010,Sit Means Sit - Charlotte,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S011,Sit Means Sit - Cincinnati,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S012,Sit Means Sit - Cleveland Westside,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S013,Sit Means Sit - Corpus Christi,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S014,Sit Means Sit - Elkton (DE),Sit Means Sit,Sit Means Sit (MD & DE),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S015,Sit Means Sit - Fort Worth,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S016,Sit Means Sit - K9 Corral,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S017,Sit Means Sit - New Jersey,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S018,Sit Means Sit - Northern Colorado,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S019,Sit Means Sit - NW Arkansas,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S020,Sit Means Sit - Ocean County,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S021,Sit Means Sit - Philadelphia,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S022,Sit Means Sit - South Chicagoland,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S023,Sit Means Sit - South Denver,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S024,Sit Means Sit - SW Florida,Sit Means Sit,Sit Means Sit (Melissa O'Donnell Group),Active,2,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S025,Sit Means Sit - Towson (MD),Sit Means Sit,Sit Means Sit (MD & DE),Inactive,,Echo,Lifestyle,B2C,Monthly,Leads,Last Year Same Period
+S026,Stopwatch Urgent Care,Carolina QuickCare,Carolina QuickCare,Active,2,Echo,Medical,B2C,Monthly,Clicks,Last Year Same Period
+S027,Smart Choice Realty,Smart Choice Realty,Smart Choice Realty,Active,2,Echo,Professional Services,B2C,Monthly,Leads,Previous Period
+S028,Sunbrella,Sunbrella,Sunbrella,Active,2,Echo,Home Services,B2C,Monthly,Leads,Previous Period
+S029,Sierra Structures,Sierra Structures,Sierra Structures,Active,2,Echo,Home Services,B2C,Monthly,Leads,Previous Period
+T001,"Tands, Inc. | Bojangles",Bojangles,Bojangles - Tands,Active,2,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+T002,Terminix Triad,Terminix Triad,Terminix Triad,Active,2,Echo,Home Services,B2C,Monthly,Website Conversions,Previous Period
+T003,Trane Commercial,Trane Commercial,Trane Commercial,Active,2,Enterprise,Home Services,B2B,Monthly,Ad Conversions,Previous Period
+T016,Trane Technologies,Trane Technologies,Trane Technologies,Active,2,Enterprise,Professional Services,B2B,Monthly,Ad Conversions,Previous Period
+T017,"Tri-Arc Food Systems, Inc. | Bojangles",Bojangles,Bojangles - Tri-Arc,Active,2,Echo,Food & Bev,B2C,Monthly,Impressions,Last Year Same Period
+T018,Trilogy Contracting Group (TCG),Trilogy Contracting Group (TCG),Trilogy Contracting Group (TCG),Active,1,Echo,Home Services,B2C,Monthly,Clicks,Last Year Same Period
+TD06,TriMark Digital,TriMark Digital,TriMark Digital,Active,2,Echo,Professional Services,B2B,Monthly,Clicks,Previous Period
+TD25,Waves Analytics,TriMark Digital,TriMark Digital,Active,2,Echo,Professional Services,B2B,Monthly,Clicks,Previous Period
+TDV1,TriMark Video,TriMark Digital,TriMark Digital,Active,2,Echo,Professional Services,B2B,Monthly,Clicks,Previous Period
+U001,UNC Health,UNC Health,UNC Health,Active,2,Echo,Golf,B2C,Monthly,Impressions,Last Year Same Period
+U002,UST Mamiya,UST Mamiya,UST Mamiya,Active,2,Echo,Golf,B2C,Monthly,Sessions,Last Year Same Period
+V001,Versa Technologies,Versa Technologies,Versa Technologies,Active,1,Echo,Professional Services,B2C,Monthly,Sessions,Last Year Same Period
+V002,Veterinary Emergency Care,Veterinary Emergency Care,Veterinary Emergency Care,Active,2,Echo,Medical,B2C,Monthly,Sessions,Last Year Same Period
+V003,Vitamin Shoppe,Vitamin Shoppe,Vitamin Shoppe,Active,2,Echo,Lifestyle,B2C,Monthly,,
+W001,Window World of Akron,Window World,Window World Moran Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W002,Window World of Atlanta,Window World,Window World ATL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W003,Window World of Austin,Window World,Window World of Austin/Grand Junction,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W004,Window World of Baton Rouge,Window World,Window World BTR Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Previous Period
+W005,Window World of Cedar Rapids,Window World,Window World of Cedar Rapids,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W006,Window World of Central Alabama,Window World,Window World ATL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W007,Window World of Central Florida (Orlando),Window World,Window World of Central Florida (Orlando),Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W008,Window World of Central Illinois,Window World,Window World STL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W009,Window World of Central Louisiana,Window World,Window World of Central Louisiana,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W010,Window World of Columbia,Window World,Window World STL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W011,Window World of Connecticut,Window World,Window World of Connecticut,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W012,Window World of CSRA (Augusta),Window World,Window World of CSRA (Augusta),Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W013,Window World of Dallas/Fort Worth,Window World,Window World BTR Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Previous Period
+W014,Window World of Davenport,Window World,Window World of Davenport,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W015,Window World of Denver,Window World,Window World of Denver,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W016,Window World of Des Moines,Window World,Window World of Des Moines,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W017,Window World of Detroit,Window World,Window World Moran Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W018,Window World of Grand Island,Window World,Window World of Grand Island,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W019,Window World of Grand Junction,Window World,Window World of Austin/Grand Junction,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W020,Window World of Houston,Window World,Window World BTR Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Previous Period
+W021,Window World of Huntsville,Window World,Window World ATL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W022,Window World of Jersey Coast,Window World,Window World of Jersey Coast/North Jersey,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W023,Window World of Joliet,Window World,Window World of Joliet,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W024,Window World of Kansas City,Window World,Window World STL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W025,Window World of Lexington,Window World,Window World of Lexington,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W026,Window World of Long Island,Window World,Window World of Long Island/Westchester,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W027,Window World of New Orleans,Window World,Window World BTR Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Previous Period
+W028,Window World of North Jersey,Window World,Window World of Jersey Coast/North Jersey,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W029,Window World of Northern Ohio (Cleveland),Window World,Window World Moran Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W030,Window World of Omaha,Window World,Window World of Omaha,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W031,Window World of Pensacola,Window World,Window World of Pensacola,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W032,Window World of Peoria,Window World,Window World STL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W033,Window World of Pittsburgh,Window World,Window World Moran Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W034,Window World of Richmond,Window World,Window World of Richmond,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W035,Window World of Rockford,Window World,Window World of Rockford,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W036,Window World of Southeastern WI,Window World,Window World of Southeastern WI,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W037,Window World of Space Coast,Window World,Window World of Space Coast,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W038,"Window World of Springfield, MO",Window World,"Window World of Springfield, MO",Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W039,Window World of St. Louis,Window World,Window World STL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W040,Window World of Tampa,Window World,Window World BTR Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Previous Period
+W041,Window World of Toledo,Window World,Window World Moran Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W042,Window World of Upper Cumberland,Window World,Window World of Upper Cumberland,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W043,Window World of Upper Ohio Valley,Window World,Window World Moran Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W044,Window World of Volusia,Window World,Window World of Volusia,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W045,Window World of West Palm Beach,Window World,Window World of West Palm Beach,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W046,Window World of Westchester,Window World,Window World of Long Island/Westchester,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W047,Window World of Western MA,Window World,Window World of Western MA,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W048,Window World of Wichita,Window World,Window World of Wichita,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W049,Window World of Youngstown,Window World,Window World Moran Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W050,Window World of Lincoln,Window World,Window Wolrd of Lincoln/Sioux Falls,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W051,Window World of Sioux Falls,Window World,Window World of Lincoln/Sioux Falls,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W052,Window World of SoCal,Window World,Window World of SoCal,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W053,Window World of San Diego,Window World,Window World of SoCal,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W054,Window World of San Bernardino,Window World,Window World of SoCal,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W055,Window World of Anaheim,Window World,Window World of SoCal,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W056,Window World of Los Angeles,Window World,Window World of SoCal,Inactive,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W057,Window World of Galveston,Window World,Window World BTR Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W058,Window World of Beaumont,Window World,Window World BTR Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W059,Window World of Muscle Shoals,Window World,Window World ATL Group,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W060,Window World of Utah,Window World,Window World of Utah,Active,3,Echo,Window World,B2C,Monthly,Leads,Last Year Same Period
+W061,Woodplay of the Carolinas,Woodplay of the Carolinas,Woodplay of the Carolinas,Active,3,Echo,Professional Services,B2C,Monthly,Leads,Last Year Same Period
+Z001,Zip Clinic Urgent Care,Carolina QuickCare,Carolina QuickCare,Active,2,Echo,Medical,B2C,Monthly,Leads,Last Year Same Period
