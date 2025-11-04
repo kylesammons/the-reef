@@ -191,10 +191,20 @@ def load_leads_data(table_name, client_id, date_range_type, start_date=None, end
         else:
             date_filter = "AND month_to_date = TRUE"  # Default
         
+        # Ensure Client_ID is properly quoted/handled as string
+        # Check if client_id is numeric or string
+        try:
+            # Try to convert to int - if it works, use without quotes
+            client_id_int = int(client_id)
+            client_id_filter = f"Client_ID = {client_id_int}"
+        except (ValueError, TypeError):
+            # If it's a string (like 'W015'), use quotes
+            client_id_filter = f"Client_ID = '{client_id}'"
+        
         query = f"""
         SELECT *
         FROM `{PROJECT_ID}.master.{table_name}`
-        WHERE Client_ID = {client_id}
+        WHERE {client_id_filter}
         {date_filter}
         ORDER BY date DESC
         """
