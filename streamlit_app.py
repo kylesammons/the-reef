@@ -57,8 +57,8 @@ def init_bigquery_client():
         return None
 
 @st.cache_data(ttl=3600)
-def get_zipcode_coordinates(zipcodes):
-    """Get lat/lon coordinates for zipcodes using BigQuery public dataset"""
+def get_zipcode_boundaries(zipcodes):
+    """Get zipcode boundaries as polygons from BigQuery public dataset"""
     if not zipcodes or len(zipcodes) == 0:
         return pd.DataFrame()
     
@@ -73,24 +73,23 @@ def get_zipcode_coordinates(zipcodes):
         if not zip_list:
             return pd.DataFrame()
         
-        # Use BigQuery public zipcode dataset
+        # Use BigQuery public zipcode dataset with geometry
         zip_string = "', '".join(zip_list)
         query = f"""
         SELECT 
             zipcode,
             city,
             state_code,
-            latitude as lat,
-            longitude as lon
-        FROM `bigquery-public-data.utility_us.zipcode_area`
-        WHERE zipcode IN ('{zip_string}')
+            ST_AsGeoJSON(zip_code_geom) as geometry
+        FROM `bigquery-public-data.geo_us_boundaries.zip_codes`
+        WHERE zip_code IN ('{zip_string}')
         """
         
         df = client.query(query).to_dataframe()
         return df
         
     except Exception as e:
-        st.warning(f"Could not fetch zipcode coordinates: {str(e)}")
+        st.warning(f"Could not fetch zipcode boundaries: {str(e)}")
         return pd.DataFrame()
 
 @st.cache_data(ttl=300)
@@ -476,7 +475,9 @@ def display_scorecards(metrics):
         """, unsafe_allow_html=True)
 
 def create_zipcode_heatmap(form_df, call_df):
-    """Create a heatmap visualization of leads by zipcode"""
+    """Create a choropleth map visualization of leads by zipcode with actual boundaries"""
+    import json
+    
     # Combine both dataframes
     combined_df = pd.concat([form_df, call_df], ignore_index=True) if not form_df.empty or not call_df.empty else pd.DataFrame()
     
@@ -501,24 +502,45 @@ def create_zipcode_heatmap(form_df, call_df):
         st.info("No valid zipcode data available.")
         return
     
-    # Get coordinates for zipcodes
-    with st.spinner("Loading zipcode coordinates..."):
-        zip_coords = get_zipcode_coordinates(zip_counts['zipcode'].tolist())
+    # Get boundaries for zipcodes
+    with st.spinner("Loading zipcode boundaries..."):
+        zip_boundaries = get_zipcode_boundaries(zip_counts['zipcode'].tolist())
     
-    if zip_coords.empty:
-        st.warning("Could not retrieve geographic coordinates for zipcodes.")
+    if zip_boundaries.empty:
+        st.warning("Could not retrieve geographic boundaries for zipcodes.")
         return
     
-    # Merge counts with coordinates
-    map_data = zip_coords.merge(zip_counts, on='zipcode', how='inner')
+    # Merge counts with boundaries
+    map_data = zip_boundaries.merge(zip_counts, on='zipcode', how='inner')
     
     if map_data.empty:
         st.info("No matching geographic data found for your zipcodes.")
         return
     
+    # Parse GeoJSON and extract coordinates for centering
+    def get_centroid(geojson_str):
+        try:
+            geom = json.loads(geojson_str)
+            if geom['type'] == 'Polygon':
+                coords = geom['coordinates'][0]
+            elif geom['type'] == 'MultiPolygon':
+                coords = geom['coordinates'][0][0]
+            else:
+                return None, None
+            
+            lons = [c[0] for c in coords]
+            lats = [c[1] for c in coords]
+            return sum(lats)/len(lats), sum(lons)/len(lons)
+        except:
+            return None, None
+    
+    centroids = map_data['geometry'].apply(get_centroid)
+    map_data['center_lat'] = centroids.apply(lambda x: x[0])
+    map_data['center_lon'] = centroids.apply(lambda x: x[1])
+    
     # Calculate center point for map
-    center_lat = map_data['lat'].mean()
-    center_lon = map_data['lon'].mean()
+    center_lat = map_data['center_lat'].mean()
+    center_lon = map_data['center_lon'].mean()
     
     # Normalize lead counts for color scaling (0-255 range)
     max_leads = map_data['lead_count'].max()
@@ -532,23 +554,28 @@ def create_zipcode_heatmap(form_df, call_df):
         r = int(173 * (1 - normalized) + 0 * normalized)
         g = int(216 * (1 - normalized) + 71 * normalized)
         b = int(230 * (1 - normalized) + 171 * normalized)
-        return [r, g, b, 180]
+        return [r, g, b, 160]
     
-    map_data['color'] = map_data['lead_count'].apply(get_color)
+    map_data['fill_color'] = map_data['lead_count'].apply(get_color)
     
-    # Create H3 hexagon layer for zip code areas
-    scatter_layer = pdk.Layer(
-        'ScatterplotLayer',
+    # Parse geometry for GeoJsonLayer
+    map_data['geometry_parsed'] = map_data['geometry'].apply(lambda x: json.loads(x))
+    
+    # Create GeoJSON layer with actual zipcode boundaries
+    geojson_layer = pdk.Layer(
+        'GeoJsonLayer',
         data=map_data,
-        get_position=['lon', 'lat'],
-        get_fill_color='color',
-        get_radius=3000,  # Radius in meters to approximate zip code area
-        pickable=True,
         opacity=0.6,
         stroked=True,
         filled=True,
-        line_width_min_pixels=2,
+        extruded=False,
+        wireframe=False,
+        get_fill_color='fill_color',
         get_line_color=[100, 100, 100],
+        get_line_width=2,
+        line_width_min_pixels=1,
+        pickable=True,
+        auto_highlight=True
     )
     
     # Set the viewport location with light map style
@@ -562,7 +589,7 @@ def create_zipcode_heatmap(form_df, call_df):
     # Render the map with light style
     r = pdk.Deck(
         map_style='mapbox://styles/mapbox/light-v10',
-        layers=[scatter_layer],
+        layers=[geojson_layer],
         initial_view_state=view_state,
         tooltip={
             'html': '<b>Zipcode:</b> {zipcode}<br/><b>City:</b> {city}<br/><b>Leads:</b> {lead_count}',
@@ -711,7 +738,7 @@ display_scorecards(metrics)
 st.markdown("<br>", unsafe_allow_html=True)
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["Form Leads", "Call Leads", "Geographic Heatmap"])
+tab1, tab2, tab3 = st.tabs(["Form Leads", "Call Leads", "📍 Geographic Heatmap"])
 
 with tab1:
     st.header("Form Leads")
