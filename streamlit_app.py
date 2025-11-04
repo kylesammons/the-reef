@@ -136,9 +136,8 @@ def ensure_editable_columns_exist(table_name):
                 client.query(f"ALTER TABLE `{table_ref}` ALTER COLUMN Lead_Status SET DEFAULT 'Pending'").result()
                 # Step 3: Update existing rows
                 client.query(f"UPDATE `{table_ref}` SET Lead_Status = 'Pending' WHERE Lead_Status IS NULL").result()
-                st.success(f"✅ Added Lead_Status column to {table_name}")
             except Exception as e:
-                st.warning(f"Could not add Lead_Status column: {str(e)}")
+                pass  # Silently skip if column already exists or can't be added
         
         # Add Revenue column if it doesn't exist
         if 'Revenue' not in existing_columns:
@@ -149,9 +148,8 @@ def ensure_editable_columns_exist(table_name):
                 client.query(f"ALTER TABLE `{table_ref}` ALTER COLUMN Revenue SET DEFAULT 0.0").result()
                 # Step 3: Update existing rows
                 client.query(f"UPDATE `{table_ref}` SET Revenue = 0.0 WHERE Revenue IS NULL").result()
-                st.success(f"✅ Added Revenue column to {table_name}")
             except Exception as e:
-                st.warning(f"Could not add Revenue column: {str(e)}")
+                pass  # Silently skip if column already exists or can't be added
         
         # Add Notes column if it doesn't exist
         if 'Notes' not in existing_columns:
@@ -162,14 +160,12 @@ def ensure_editable_columns_exist(table_name):
                 client.query(f"ALTER TABLE `{table_ref}` ALTER COLUMN Notes SET DEFAULT ''").result()
                 # Step 3: Update existing rows
                 client.query(f"UPDATE `{table_ref}` SET Notes = '' WHERE Notes IS NULL").result()
-                st.success(f"✅ Added Notes column to {table_name}")
             except Exception as e:
-                st.warning(f"Could not add Notes column: {str(e)}")
+                pass  # Silently skip if column already exists or can't be added
         
         return True
         
     except Exception as e:
-        st.warning(f"Note: Could not modify table schema: {str(e)}")
         return False
 
 def load_leads_data(table_name, client_id, date_range_type, start_date=None, end_date=None):
@@ -202,7 +198,7 @@ def load_leads_data(table_name, client_id, date_range_type, start_date=None, end
             client_id_filter = f"Client_ID = '{client_id}'"
         
         query = f"""
-        SELECT * EXCEPT(year_to_date, month_to_date, quarter_to_date, Client_ID, Client_Name)
+        SELECT *
         FROM `{PROJECT_ID}.master.{table_name}`
         WHERE {client_id_filter}
         {date_filter}
@@ -292,7 +288,7 @@ def save_leads_data(df, table_name, client_id, date_range_type, start_date=None,
             # Create a new table with all data except the filtered rows
             merge_query = f"""
             CREATE OR REPLACE TABLE `{table_ref}` AS
-            SELECT *  FROM `{table_ref}`
+            SELECT * FROM `{table_ref}`
             WHERE NOT (Client_ID = {client_id} AND {date_filter})
             UNION ALL
             SELECT * FROM `{temp_table}`
@@ -355,22 +351,24 @@ def display_scorecards(metrics):
     st.markdown("""
     <style>
     .scorecard {
-        border: 2px solid #1f77b4;
+        border: 2px solid #e0e0e0;
         border-radius: 10px;
         padding: 15px;
         text-align: center;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: white;
+        color: #333;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     .scorecard-value {
         font-size: 32px;
         font-weight: bold;
         margin: 10px 0;
+        color: #1f77b4;
     }
     .scorecard-label {
         font-size: 14px;
-        opacity: 0.9;
+        color: #666;
+        font-weight: 500;
     }
     </style>
     """, unsafe_allow_html=True)
