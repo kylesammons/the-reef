@@ -520,45 +520,56 @@ def create_zipcode_heatmap(form_df, call_df):
     center_lat = map_data['lat'].mean()
     center_lon = map_data['lon'].mean()
     
-    # Create the pydeck layer
-    layer = pdk.Layer(
-        'HeatmapLayer',
-        data=map_data,
-        get_position=['lon', 'lat'],
-        get_weight='lead_count',
-        radiusPixels=60,
-        intensity=1,
-        threshold=0.05,
-        aggregation=pdk.types.String('SUM')
-    )
+    # Normalize lead counts for color scaling (0-255 range)
+    max_leads = map_data['lead_count'].max()
+    min_leads = map_data['lead_count'].min()
     
-    # Create scatter layer for individual points with tooltips
+    # Create color gradient from light blue to dark blue based on lead count
+    def get_color(lead_count):
+        # Normalize to 0-1 range
+        normalized = (lead_count - min_leads) / (max_leads - min_leads) if max_leads > min_leads else 0.5
+        # Create gradient from light blue (173, 216, 230) to dark blue (0, 71, 171)
+        r = int(173 * (1 - normalized) + 0 * normalized)
+        g = int(216 * (1 - normalized) + 71 * normalized)
+        b = int(230 * (1 - normalized) + 171 * normalized)
+        return [r, g, b, 180]
+    
+    map_data['color'] = map_data['lead_count'].apply(get_color)
+    
+    # Create H3 hexagon layer for zip code areas
     scatter_layer = pdk.Layer(
         'ScatterplotLayer',
         data=map_data,
         get_position=['lon', 'lat'],
-        get_radius='lead_count * 200',
-        get_fill_color=[255, 140, 0, 140],
+        get_fill_color='color',
+        get_radius=3000,  # Radius in meters to approximate zip code area
         pickable=True,
+        opacity=0.6,
+        stroked=True,
+        filled=True,
+        line_width_min_pixels=2,
+        get_line_color=[100, 100, 100],
     )
     
-    # Set the viewport location
+    # Set the viewport location with light map style
     view_state = pdk.ViewState(
         latitude=center_lat,
         longitude=center_lon,
-        zoom=8,
+        zoom=9,
         pitch=0
     )
     
-    # Render the map
+    # Render the map with light style
     r = pdk.Deck(
-        layers=[layer, scatter_layer],
+        map_style='mapbox://styles/mapbox/light-v10',
+        layers=[scatter_layer],
         initial_view_state=view_state,
         tooltip={
             'html': '<b>Zipcode:</b> {zipcode}<br/><b>City:</b> {city}<br/><b>Leads:</b> {lead_count}',
             'style': {
-                'backgroundColor': 'steelblue',
-                'color': 'white'
+                'backgroundColor': 'white',
+                'color': 'black',
+                'border': '1px solid #ccc'
             }
         }
     )
@@ -700,7 +711,7 @@ display_scorecards(metrics)
 st.markdown("<br>", unsafe_allow_html=True)
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["Form Leads", "Call Leads", "📍 Geographic Heatmap"])
+tab1, tab2, tab3 = st.tabs(["Form Leads", "Call Leads", "Geographic Heatmap"])
 
 with tab1:
     st.header("Form Leads")
