@@ -238,75 +238,38 @@ def save_leads_data(df, table_name, client_id, date_range_type, start_date=None,
     try:
         table_ref = f"{PROJECT_ID}.master.{table_name}"
         
-        # Build a temp table with updates
+        # Extract only the columns we need for the update
+        # We need lead_id to match records, plus the 3 editable columns
+        update_df = df[['lead_id', 'Lead_Status', 'Revenue', 'Notes']].copy()
+        
+        # Build a temp table with just the update columns
         temp_table = f"{PROJECT_ID}.master.temp_{table_name}_{int(time.time())}"
         
         # Load the edited data to a temp table
         job_config = bigquery.LoadJobConfig(
             write_disposition="WRITE_TRUNCATE",
-            autodetect=True,
+            schema=[
+                bigquery.SchemaField("lead_id", "STRING"),
+                bigquery.SchemaField("Lead_Status", "STRING"),
+                bigquery.SchemaField("Revenue", "FLOAT64"),
+                bigquery.SchemaField("Notes", "STRING"),
+            ]
         )
         
-        job = client.load_table_from_dataframe(df, temp_table, job_config=job_config)
+        job = client.load_table_from_dataframe(update_df, temp_table, job_config=job_config)
         job.result()
         
-        # Get the primary key column (assuming there's an ID column or unique identifier)
-        # You may need to adjust this based on your table structure
-        # For now, we'll use a MERGE statement to update only the editable columns
-        
-        # First, identify a unique key column (common options: id, lead_id, etc.)
-        # Let's check what columns exist
-        sample_query = f"SELECT * FROM `{table_ref}` LIMIT 1"
-        sample_df = client.query(sample_query).to_dataframe()
-        
-        # Try to find a suitable key column
-        possible_keys = ['id', 'lead_id', 'ID', 'Lead_ID', 'form_id', 'call_id']
-        key_column = None
-        for key in possible_keys:
-            if key in sample_df.columns:
-                key_column = key
-                break
-        
-        if not key_column:
-            # If no ID column, we'll have to do a full replace for matching records
-            # This is a fallback - ideally your table should have a unique identifier
-            st.warning("No unique ID column found. Using full table update method.")
-            
-            # Delete the rows that match the filter criteria and insert the new ones
-            # Build the same date filter
-            if date_range_type == "custom" and start_date and end_date:
-                date_filter = f"date BETWEEN '{start_date}' AND '{end_date}'"
-            elif date_range_type == "month_to_date":
-                date_filter = "month_to_date = TRUE"
-            elif date_range_type == "year_to_date":
-                date_filter = "year_to_date = TRUE"
-            elif date_range_type == "quarter_to_date":
-                date_filter = "quarter_to_date = TRUE"
-            else:
-                date_filter = "month_to_date = TRUE"
-            
-            # Create a new table with all data except the filtered rows
-            merge_query = f"""
-            CREATE OR REPLACE TABLE `{table_ref}` AS
-            SELECT * FROM `{table_ref}`
-            WHERE NOT (Client_ID = {client_id} AND {date_filter})
-            UNION ALL
-            SELECT * FROM `{temp_table}`
-            """
-        else:
-            # Use MERGE if we have a key column
-            merge_query = f"""
-            MERGE `{table_ref}` T
-            USING `{temp_table}` S
-            ON T.{key_column} = S.{key_column}
-            WHEN MATCHED THEN
-              UPDATE SET 
-                Lead_Status = S.Lead_Status,
-                Revenue = S.Revenue,
-                Notes = S.Notes
-            WHEN NOT MATCHED THEN
-              INSERT ROW
-            """
+        # Use MERGE to update only the editable columns based on lead_id
+        merge_query = f"""
+        MERGE `{table_ref}` T
+        USING `{temp_table}` S
+        ON T.lead_id = S.lead_id
+        WHEN MATCHED THEN
+          UPDATE SET 
+            T.Lead_Status = S.Lead_Status,
+            T.Revenue = S.Revenue,
+            T.Notes = S.Notes
+        """
         
         client.query(merge_query).result()
         
