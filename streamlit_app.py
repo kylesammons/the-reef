@@ -421,13 +421,13 @@ if not st.session_state.authenticated:
     st.title("Leads Manager")
     st.markdown("---")
     
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 3, 1])
     
     with col2:
         st.subheader("Login")
         
-        username = st.text_input("Username (Client Name)", placeholder="e.g., windowworldofdenver")
-        password = st.text_input("Password (Client ID)", type="password", placeholder="Enter your Client ID")
+        username = st.text_input("Username", placeholder="e.g., windowworldof...")
+        password = st.text_input("Password", type="password", placeholder="Enter your Client Pin")
         
         if st.button("Login", type="primary", use_container_width=True):
             if username and password:
