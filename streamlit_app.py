@@ -555,6 +555,7 @@ with tab1:
             hide_index=True,
             disabled=disabled_cols,
             column_config={
+                "lead_id": None,
                 "Lead_Status": st.column_config.SelectboxColumn(
                     "Lead Status",
                     options=['Pending', 'Unqualified', 'Qualified', 'Scheduled', 'Appointment', 'Sale'],
@@ -618,6 +619,7 @@ with tab2:
             hide_index=True,
             disabled=disabled_cols,
             column_config={
+                "lead_id": None,
                 "Lead_Status": st.column_config.SelectboxColumn(
                     "Lead Status",
                     options=['Pending', 'Unqualified', 'Qualified', 'Scheduled', 'Appointment', 'Sale'],
