@@ -1,3 +1,3 @@
-# :ocean: The Reef
+Leads Manager
 
-Add new clients, ad platforms and update client status.
+Change Lead Statuses, report Revenue and add Notes to track lead quality and improve performance.
