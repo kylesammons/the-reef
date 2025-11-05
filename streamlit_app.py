@@ -198,7 +198,7 @@ def load_leads_data(table_name, client_id, date_range_type, start_date=None, end
             client_id_filter = f"Client_ID = '{client_id}'"
         
         query = f"""
-        SELECT * EXCEPT(year_to_date, month_to_date, quarter_to_date, Client_Name, Client_ID, lead_id)
+        SELECT * EXCEPT(year_to_date, month_to_date, quarter_to_date, Client_Name, Client_ID)
         FROM `{PROJECT_ID}.master.{table_name}`
         WHERE {client_id_filter}
         {date_filter}
