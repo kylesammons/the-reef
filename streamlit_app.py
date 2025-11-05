@@ -587,11 +587,11 @@ with tab1:
                     if save_leads_data(edited_form_df, "all_form_table", st.session_state.client_id, date_range_type, start_date, end_date):
                         st.session_state.form_leads_df = edited_form_df
                         st.session_state.form_changes_made = False
-                        st.toast("✅ Leads updated successfully!", icon="✅")
+                        st.toast("Leads updated successfully!", icon="✅")
                         time.sleep(1)
                         st.rerun()
                     else:
-                        st.toast("❌ Failed to save changes", icon="❌")
+                        st.toast("Failed to save changes", icon="❌")
     else:
         st.info("No form leads data available for the selected date range.")
 
